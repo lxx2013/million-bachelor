@@ -1,4 +1,4 @@
-export default [
+module.exports =  [
     {
         question:'小明的妈妈有三个孩子, 老大叫大毛,老二叫二毛,老三叫什么?',
         options:['三毛','老三','小阴','小明'],
