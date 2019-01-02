@@ -1,27 +1,45 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <!-- <HelloWorld/> -->
-    <form><input type="range" v-model="ppp" max=110 min=0 style="height:10px"></form>
-    <div>some text here</div>
-    <water-back :percent="ppp" color="#1787ff" class="water-back"></water-back>
+    <Questions :quiz="quiz" v-on:choose="choose"></Questions>
+    <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld";
 import WaterBack from "./components/WaterBack";
-
+import Questions from "./components/questions"
+import data from '../server/data'
+import { latexToDOM } from '../server/util'
 export default {
   name: "App",
   components: {
-    HelloWorld,
-    WaterBack
+    WaterBack,
+    Questions
   },
   data() {
     return {
-      ppp: 50
+      quizs: data,
+      quizIndex:0,
+      water:70
     };
+  },
+  methods:{
+    choose(){
+      setTimeout(()=>{
+        this.quizIndex++
+        if(this.quizIndex >= this.quizs.length){
+          alert('over!')
+        }
+      },3000)
+    }
+  },
+  computed:{
+    quiz(){
+      var q = this.quizs[this.quizIndex]
+      q.question = latexToDOM(q.question)
+      q.options = q.options.map(x=>latexToDOM(x))
+      return q
+    }
   }
 };
 </script>

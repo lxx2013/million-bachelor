@@ -72,6 +72,7 @@ module.exports = {
       'vue': 'Vue',
       'vue-router': 'VueRouter',
       'socket.io':'io',
+      'vuetify':'Vuetify',
   },
   node: {
     // prevent webpack from injecting useless setImmediate polyfill because Vue
