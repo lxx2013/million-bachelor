@@ -7,6 +7,7 @@
         src="https://cdn.vuetifyjs.com/images/cards/docks.jpg"
       ></v-img>
       <v-card-title>
+        <div style="color:grey">第{{quiz.Index}} / {{quiz.Total }} 题</div>
         <div class="questions-title" v-html="quiz.question"></div>
       </v-card-title>
     </v-card>

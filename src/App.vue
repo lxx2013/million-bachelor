@@ -8,8 +8,8 @@
 <script>
 import WaterBack from "./components/WaterBack";
 import Questions from "./components/questions"
-import data from '../server/data'
-import { latexToDOM } from '../server/util'
+import io from 'socket.io'
+const socket = io.connect('http://localhost:3001')
 export default {
   name: "App",
   components: {
@@ -18,8 +18,7 @@ export default {
   },
   data() {
     return {
-      quizs: data,
-      quizIndex:0,
+      quiz:{},
       water:70
     };
   },
@@ -34,12 +33,14 @@ export default {
     }
   },
   computed:{
-    quiz(){
-      var q = this.quizs[this.quizIndex]
-      q.question = latexToDOM(q.question)
-      q.options = q.options.map(x=>latexToDOM(x))
-      return q
-    }
+
+  },
+  mounted(){
+    socket.emit('client connected','Setsuna')
+    socket.on('server patchQuestion', singleQuestion =>{
+      console.log(this)
+      Vue.set(this,'quiz',singleQuestion)
+    })
   }
 };
 </script>
