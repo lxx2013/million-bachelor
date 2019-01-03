@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Questions :quiz="quiz" v-on:choose="choose"></Questions>
+    <Questions :quiz="quiz" :count="count" :colors="colors" v-on:choose="choose"></Questions>
     <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
     <Waiting v-if="isWaiting" keep-alive></Waiting>
   </div>
@@ -32,7 +32,9 @@ export default {
       quiz: {},
       water: 20,
       isWaiting: true,
-      timer: {}
+      timer: {},
+      count:[],
+      colors:{ default:'#ffffffe0', correct:'green',wrong:'#ffffff80'}
     };
   },
   methods: {
@@ -61,8 +63,11 @@ export default {
   mounted() {
     this.reset();
     socket.emit("client connected", "Setsuna");
+    socket.on("server patchAnswer", count=>{
+      Vue.set(this,'count',count)
+    })
     socket.on("server patchQuestion", singleQuestion => {
-      console.log(this);
+      Vue.set(this,"count",[])
       Vue.set(this, "quiz", singleQuestion);
       if (Object.keys(singleQuestion).length > 0) {
         this.isWaiting = false
@@ -100,7 +105,7 @@ export default {
 
 .water-back {
   z-index -1
-  min-height 100vh
+  height 100vh
   overflow hidden
 }
 </style>
