@@ -8,8 +8,8 @@
 <script>
 import WaterBack from "./components/WaterBack";
 import Questions from "./components/questions"
-import io from 'socket.io'
-const socket = io.connect('http://localhost:3001')
+import socket from './socket'
+
 export default {
   name: "App",
   components: {

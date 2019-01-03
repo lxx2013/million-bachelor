@@ -95,6 +95,11 @@ var a = [
       hint: '$e^lnx$ 实际上就是 x'
     }
   },
-]
+].map((item, index) => {
+  return {
+    ...item,
+    uid: "DEFAULT_QUIZ_" + index
+  }
+})
 export default a
 

@@ -1,8 +1,10 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-import data from './data'
+import initialQuiz from './data'
 import { latexToDOM } from './util'
+
+var data = initialQuiz
 
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
@@ -29,17 +31,18 @@ io.on('connection', function (socket) {
   /**
    * 一名用户或 admin 链接
    */
-  socket.on('client connected', name => {
+  socket.once('client connected', name => {
     console.log(name, ' connected ')
     USER.name = name
     onlines.push(USER)
     patchOnlines()
   })
-  socket.on('admin connected', name => {
+  socket.once('admin connected', name => {
     console.log(`admin ${name} connected`)
     USER.name = name
     admins.push(USER)
     patchOnlines()
+    patchQuizAdmin()
   })
   /**
    * USER 或 admin 断开连接
@@ -57,6 +60,18 @@ io.on('connection', function (socket) {
    */
   socket.on('client choosed', choice => {
     console.log(choice)
+  })
+  /**
+   * 管理员查询题目
+   */
+  socket.on('admin getQuiz',patchQuizAdmin)
+  /**
+   * 管理员修改题目
+   */
+  socket.on('admin setQuiz', newData=>{
+    data=newData
+    Index=0
+    patchQuizAdmin()
   })
   /**
    * 管理员选择发送下一题
@@ -110,6 +125,17 @@ function pathchAnswer(io, question) {
   io.emit('server patchAnswer', {})
 }
 /**
+ * 向所有管理员发送最新的题库
+ */
+function patchQuizAdmin(){
+  admins.forEach(x => {
+    let socket = io.sockets.connected[x.id]
+    if (socket) {
+      socket.emit('server allQuiz', data)
+    }
+  })
+}
+/**
  * 向所有管理员发送 onlines 信息
  */
 function patchOnlines(){
@@ -125,7 +151,6 @@ function patchOnlines(){
       }
     })
   }
-
 }
 http.listen(8801, function () {
   console.log('listening on *:8801');
