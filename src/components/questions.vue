@@ -7,7 +7,7 @@
         src="https://cdn.vuetifyjs.com/images/cards/docks.jpg"
       ></v-img>
       <v-card-title>
-        <div style="color:grey">第{{quiz.Index}} / {{quiz.Total }} 题</div>
+        <div style="color:grey">第{{quiz.Index>=0 ? quiz.Index+1 : ''}} / {{quiz.Total }} 题</div>
         <div class="questions-title" v-html="quiz.question"></div>
       </v-card-title>
     </v-card>
@@ -18,13 +18,14 @@
         style="width:80%;"
         v-html="option"
       ></v-btn>
+      <span>{{ index == quiz.choiceIndex ? '已选择' :''}}</span>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "HelloWorld",
+  name: "Questions",
   props: {
     quiz: {
       type: Object,
@@ -49,6 +50,11 @@ export default {
 
   .options {
     margin 5vh auto
+    span{
+      position:absolute
+      margin-left:-60px
+      margin-top:15px
+    }
   }
 }
 

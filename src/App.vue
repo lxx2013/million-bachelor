@@ -2,65 +2,105 @@
   <div id="app">
     <Questions :quiz="quiz" v-on:choose="choose"></Questions>
     <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
+    <Waiting v-if="isWaiting" keep-alive></Waiting>
   </div>
 </template>
 
 <script>
 import WaterBack from "./components/WaterBack";
-import Questions from "./components/questions"
-import io from 'socket.io'
-const socket = io.connect('http://localhost:3001')
+import Questions from "./components/questions";
+import Waiting from "./components/waiting";
+import io from "socket.io";
+
+var href = "";
+if (process.env.NODE_ENV === "development") {
+  href = "http://localhost:8801";
+} else {
+  href = "https://api.k-on.live";
+}
+
+const socket = io.connect(href);
 export default {
   name: "App",
   components: {
     WaterBack,
-    Questions
+    Questions,
+    Waiting
   },
   data() {
     return {
-      quiz:{},
-      water:70
+      quiz: {},
+      water: 20,
+      isWaiting: true,
+      timer: {}
     };
   },
-  methods:{
-    choose(){
-      setTimeout(()=>{
-        this.quizIndex++
-        if(this.quizIndex >= this.quizs.length){
-          alert('over!')
-        }
-      },3000)
+  methods: {
+    choose(choiceIndex) {
+      if (!this.quiz.isChoosed) {
+        socket.emit("client choosed", {
+          quizIndex: this.quiz.Index,
+          choiceIndex
+        });
+        this.quiz.isChoosed = 1;
+        Vue.set(this.quiz,'choiceIndex',  choiceIndex)
+        clearInterval(this.timer);
+      }
+    },
+    reset() {
+      this.isWaiting = true;
+      var count = 0.08;
+      clearInterval(this.timer);
+      this.timer = setInterval(() => {
+        count += 0.02;
+        this.water = 20 + 5 * Math.sin(count);
+      }, 33);
     }
   },
-  computed:{
-
-  },
-  mounted(){
-    socket.emit('client connected','Setsuna')
-    socket.on('server patchQuestion', singleQuestion =>{
-      console.log(this)
-      Vue.set(this,'quiz',singleQuestion)
-    })
+  computed: {},
+  mounted() {
+    this.reset();
+    socket.emit("client connected", "Setsuna");
+    socket.on("server patchQuestion", singleQuestion => {
+      console.log(this);
+      Vue.set(this, "quiz", singleQuestion);
+      if (Object.keys(singleQuestion).length > 0) {
+        this.isWaiting = false
+        this.water = 10;
+        var limitSeconds = singleQuestion.limitSeconds || 15;
+        clearInterval(this.timer);
+        this.timer = setInterval(() => {
+          this.water += 100 / ((1000 / 33) * limitSeconds);
+          if (this.water >= 110) {
+            clearInterval(this.timer);
+          }
+        }, 33);
+      } else {
+        this.reset()
+      }
+    });
   }
 };
 </script>
 
 <style lang="stylus">
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+  font-family 'Avenir', Helvetica, Arial, sans-serif
+  -webkit-font-smoothing antialiased
+  -moz-osx-font-smoothing grayscale
+  text-align center
+  color #2c3e50
 }
-*{
-  margin:0
-  padding:0
-  user-select: none
+
+* {
+  margin 0
+  padding 0
+  user-select none
 }
-.water-back{
-  z-index:-1
-  min-height:100vh
-  overflow:hidden
+
+.water-back {
+  z-index -1
+  min-height 100vh
+  overflow hidden
 }
 </style>
