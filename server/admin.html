@@ -12,17 +12,18 @@
 </head>
 
 <body>
-  <div id="app">
     <div id="app">
         <input type="text" v-model="username">
         <button @click="login">login</button>
-        <button @click="next">send next question</button>
+        <button @click="e('next')">send next question</button>
+        <button @click="e('answer')">answer</button>
+        <button @click="e('wait')">wait</button>
+        <button @click="e('score')">score</button>
+        <button @click="e('reset')">reset</button>
       <ul>
         <li v-for="(user,index) in onlines" :key="index">{{user}}</li>
       </ul>
     </div>
-  </div>
-  <!-- built files will be auto injected -->
 </body>
 <script>
   localStorage.debug = '*'
@@ -41,8 +42,9 @@
         e.preventDefault()
         return false
       },
-      next(){
-        socket.emit('admin next')
+      e(event){
+        socket.emit(`admin ${event}`)
+        return false
       }
     },
     mounted:function(){

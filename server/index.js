@@ -4,11 +4,10 @@ var io = require('socket.io')(http);
 import initialQuiz from './data'
 import { latexToDOM } from './util'
 
-var data = initialQuiz
-
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html');
+app.get('/admin', function (req, res) {
+  res.sendFile(__dirname + '/admin.html');
 });
+app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
 
 /**
  * 全局变量
@@ -17,17 +16,22 @@ app.get('/', function (req, res) {
 var onlines = []  //同时在线的人员数据
 var admins = []   //同时在线的admin
 var Index = 0     //即将发送的题目编号
-var Total = 10    //总题目数量,达到这个数则停止. 而 data 中的题目数量会超过 Total. 将来要从 data 中随机抽取题目
+var Total = 12    //总题目数量,达到这个数则停止. 而 data 中的题目数量会超过 Total. 将来要从 data 中随机抽取题目
+var NowQuiz = {}  //当前的题目.考虑到有些人网速慢,延迟加载,或者可能断线重连, 要给他们同步当前题目
 /**
- * 事件部分,共有4种客户端到server 的事件
+ * 事件部分,共有6种客户端到server 的事件
  * 1. user 或 admin 链接
  * 2. user 或 admin 断开连接
  * 3. user 选择一个选项
- * 4. admin 发送下一题
+ * 4. admin next   发送下一题
+ * 5. admin answer 发送答案(其实是发送答对的人数统计)
+ * 6. admin wait   发送等待信号
+ * 7. admin score  发送最终统计分数板
+ * 8. admin reset  重置整个系统 (目前只写了一轮答题,还未写4轮*12的版本)
  */
 
 io.on('connection', function (socket) {
-  var USER = { id: socket.id , date: (new Date()).toLocaleString()} // 本次链接的 USER
+  var USER = { id: socket.id, date: (new Date()).toLocaleString(), choice: [] } // 本次链接的 USER
   /**
    * 一名用户或 admin 链接
    */
@@ -35,7 +39,10 @@ io.on('connection', function (socket) {
     console.log(name, ' connected ')
     USER.name = name
     onlines.push(USER)
-    patchOnlines()
+    if(Object.keys(NowQuiz).length == 0)
+      socket.emit('server wait')
+    else
+      socket.emit('server patchQuestion', NowQuiz)
   })
   socket.once('admin connected', name => {
     console.log(`admin ${name} connected`)
@@ -49,7 +56,7 @@ io.on('connection', function (socket) {
    */
   socket.on('disconnect', () => {
     console.log(`${USER.name} disconnected `)
-    if(onlines.indexOf(USER) !== -1){
+    if (onlines.indexOf(USER) !== -1) {
       onlines.splice(onlines.indexOf(USER), 1)
     } else if (admins.indexOf(USER) !== -1) {
       admins.splice(admins.indexOf(USER), 1)
@@ -58,8 +65,9 @@ io.on('connection', function (socket) {
   /**
    * 用户选择了一个选项
    */
-  socket.on('client choosed', choice => {
-    console.log(choice)
+  socket.on('client choosed', o => {
+    console.log(USER, o.quizIndex, o.choiceIndex)
+    USER.choice[o.quizIndex] = o.choiceIndex
   })
   /**
    * 管理员查询题目
@@ -76,20 +84,36 @@ io.on('connection', function (socket) {
   /**
    * 管理员选择发送下一题
    */
-  socket.on('admin next',()=>{
-    if(Index == Total){
-
+  socket.on('admin next', () => {
+    if (Index == Total) {
       return
     }
-    let singleQuestion = data[Index++]
+    let singleQuestion = data[Index]
     singleQuestion.Total = Total
-    singleQuestion.Index = Index
+    singleQuestion.Index = Index++
     singleQuestion.question = latexToDOM(singleQuestion.question)
     singleQuestion.options = singleQuestion.options.map(x => latexToDOM(x))
     console.log(`singleQuestion : ${singleQuestion}`)
-    if(singleQuestion){
+    if (singleQuestion) {
       patchQuestion(singleQuestion)
+      NowQuiz = singleQuestion
     }
+  })
+  /**
+   * 管理员选择展示 answer(要展示的是人员选项的分布) , wait
+   */
+  socket.on('admin answer',()=>{
+    pathchAnswer()
+  })
+  socket.on('admin wait', () => {
+    io.emit('server wait')
+  })
+  /**
+   * 管理员选择 reset
+   */
+  socket.on('admin reset', () => {
+    Index = 0
+    io.emit('server wait')
   })
 });
 
@@ -103,10 +127,11 @@ io.on('connection', function (socket) {
 
 /**
  * 向全员广播一个题目
+ * question.limitSeconds 控制一道题允许的时间, 单位:s 如果为空, 前端会默认15s
  */
 function patchQuestion(question) {
-  if(onlines.length){
-    onlines.forEach(x =>{
+  if (onlines.length) {
+    onlines.forEach(x => {
       let socket = io.sockets.connected[x.id]
       if (socket) {
         socket.emit('server patchQuestion', question)
@@ -121,8 +146,17 @@ function patchQuestion(question) {
 /**
  * 向全员广播上题答案
  */
-function pathchAnswer(io, question) {
-  io.emit('server patchAnswer', {})
+function pathchAnswer() {
+  var count = [0,0,0,0]
+  NowQuiz.Index
+  onlines.forEach(x=>{
+    let choice = x.choice[NowQuiz.Index] //可能为 null, 0, 1, 2, 3这几个值
+    if(choice >=0){
+      count[choice] ++
+    }
+  })
+  console.log('patchAnswer ',count)
+  io.emit('server patchAnswer', count)
 }
 /**
  * 向所有管理员发送最新的题库
@@ -138,12 +172,14 @@ function patchQuizAdmin(){
 /**
  * 向所有管理员发送 onlines 信息
  */
-function patchOnlines(){
+setInterval(patchOnlines, 1000)
+
+function patchOnlines() {
   if (admins.length) {
     admins.forEach(x => {
       let socket = io.sockets.connected[x.id]
       if (socket) {
-        socket.emit('server onlines',onlines)
+        socket.emit('server onlines', onlines)
       }
       else {
         console.log('admins not found,admins:', admins)

@@ -1,0 +1,31 @@
+<template>
+  <div class="waiting">
+     <span>请等待发题...</span>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Wating'
+}
+</script>
+
+<style scoped >
+.waiting{
+  position:fixed;
+  z-index:2;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100vw;
+  height:100vh;
+  line-height:100vh;
+  background: #000000d0;
+  text-align: center;
+}
+.waiting span{
+    color:white;
+    font-size:30px;
+}
+</style>

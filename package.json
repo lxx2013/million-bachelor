@@ -5,7 +5,7 @@
   "author": "lxx.air <lxx2013@mail.ustc.edu.cn>",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js --host 0.0.0.0",
+    "dev": "webpack-dev-server --inline --disableHostCheck=true --progress --config build/webpack.dev.conf.js --host 0.0.0.0",
     "start": "npm run dev",
     "server": "node -r esm server/index.js",
     "dev:server": "nodemon --watch server -r esm server/index.js",
