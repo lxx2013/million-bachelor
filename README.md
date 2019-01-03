@@ -17,5 +17,6 @@
 |  | | `admin reset`  |
 | `server =>` | `server patchQuestion` |  |
 | | `server patchAnswer` | |
+| | `server wait`等同 *reset* | |
 | | `server patchScore` | |
 | | | `server onlines`|

@@ -18,8 +18,9 @@
         style="width:80%;"
         v-html="option"
       ></v-btn>
-      <span v-if="count.length == 0 ">{{ index == quiz.choiceIndex ? '已选择' :''}}</span>
-      <span v-if="count.length>0">{{count[index]}}人</span>
+      <v-tooltip left v-show="isAnswer&&index == quiz.answer.index" v-model="isAnswer">{{quiz.answer.hint}}}</v-tooltip>
+      <span v-if="!isAnswer">{{ index == quiz.choiceIndex ? '已选择' :''}}</span>
+      <span v-if="isAnswer">{{count[index]}}人</span>
     </div>
   </div>
 </template>
@@ -44,6 +45,11 @@ export default {
   data() {
     return {
     };
+  },
+  computed:{
+    isAnswer(){
+      return this.count.length > 0
+    }
   },
   methods:{
     choose(index){

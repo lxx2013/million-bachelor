@@ -39,7 +39,10 @@ io.on('connection', function (socket) {
     console.log(name, ' connected ')
     USER.name = name
     onlines.push(USER)
-    socket.emit('server patchQuestion', NowQuiz)
+    if(Object.keys(NowQuiz).length == 0)
+      socket.emit('server wait')
+    else
+      socket.emit('server patchQuestion', NowQuiz)
   })
   socket.on('admin connected', name => {
     console.log(`admin ${name} connected`)
@@ -84,18 +87,20 @@ io.on('connection', function (socket) {
     }
   })
   /**
-   * 管理员选择展示 answer(要展示的是人员选项的分布)
+   * 管理员选择展示 answer(要展示的是人员选项的分布) , wait
    */
   socket.on('admin answer',()=>{
     pathchAnswer()
+  })
+  socket.on('admin wait', () => {
+    io.emit('server wait')
   })
   /**
    * 管理员选择 reset
    */
   socket.on('admin reset', () => {
     Index = 0
-    onlines.forEach(x => x.choice = [])
-    patchQuestion({})
+    io.emit('server wait')
   })
 });
 

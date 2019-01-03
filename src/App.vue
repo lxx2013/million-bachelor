@@ -33,8 +33,8 @@ export default {
       water: 20,
       isWaiting: true,
       timer: {},
-      count:[],
-      colors:{ default:'#ffffffe0', correct:'green',wrong:'#ffffff80'}
+      count: [],
+      colors: { default: "#ffffffe0", correct: "green", wrong: "#ffffff80" }
     };
   },
   methods: {
@@ -45,12 +45,13 @@ export default {
           choiceIndex
         });
         this.quiz.isChoosed = 1;
-        Vue.set(this.quiz,'choiceIndex',  choiceIndex)
+        Vue.set(this.quiz, "choiceIndex", choiceIndex);
         clearInterval(this.timer);
       }
     },
-    reset() {
+    wait(){
       this.isWaiting = true;
+      Vue.set(this, "quiz", {});
       var count = 0.08;
       clearInterval(this.timer);
       this.timer = setInterval(() => {
@@ -61,28 +62,27 @@ export default {
   },
   computed: {},
   mounted() {
-    this.reset();
+    this.wait();
     socket.emit("client connected", "Setsuna");
-    socket.on("server patchAnswer", count=>{
-      Vue.set(this,'count',count)
+    socket.on("server patchAnswer", count => {
+      Vue.set(this, "count", count);
+    })
+    socket.on("server wait", () => {
+      this.wait()
     })
     socket.on("server patchQuestion", singleQuestion => {
-      Vue.set(this,"count",[])
+      Vue.set(this, "count", []);
       Vue.set(this, "quiz", singleQuestion);
-      if (Object.keys(singleQuestion).length > 0) {
-        this.isWaiting = false
-        this.water = 10;
-        var limitSeconds = singleQuestion.limitSeconds || 15;
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-          this.water += 100 / ((1000 / 33) * limitSeconds);
-          if (this.water >= 110) {
-            clearInterval(this.timer);
-          }
-        }, 33);
-      } else {
-        this.reset()
-      }
+      this.isWaiting = false;
+      this.water = 10;
+      var limitSeconds = singleQuestion.limitSeconds || 15;
+      clearInterval(this.timer);
+      this.timer = setInterval(() => {
+        this.water += 100 / ((1000 / 33) * limitSeconds);
+        if (this.water >= 110) {
+          clearInterval(this.timer);
+        }
+      }, 33);
     });
   }
 };
