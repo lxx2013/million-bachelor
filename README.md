@@ -15,6 +15,9 @@
 |  | | `admin wait`   |
 |  | | `admin score`  |
 |  | | `admin reset`  |
+|  | | `admin getQuiz` |
+|  | | `admin setQuiz` |
+| `server =>` | `server allQuiz` |  |
 | `server =>` | `server patchQuestion` |  |
 | | `server patchAnswer` | |
 | | `server wait`等同 *reset* | |

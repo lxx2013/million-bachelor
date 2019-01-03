@@ -10,16 +10,8 @@
 import WaterBack from "./components/WaterBack";
 import Questions from "./components/questions";
 import Waiting from "./components/waiting";
-import io from "socket.io";
+import socket from "./socket";
 
-var href = "";
-if (process.env.NODE_ENV === "development") {
-  href = "http://localhost:8801";
-} else {
-  href = "https://k-on.live";
-}
-
-const socket = io.connect(href);
 export default {
   name: "App",
   components: {
@@ -49,7 +41,7 @@ export default {
         clearInterval(this.timer);
       }
     },
-    wait(){
+    wait() {
       this.isWaiting = true;
       Vue.set(this, "quiz", {});
       var count = 0.08;
@@ -66,11 +58,13 @@ export default {
     socket.emit("client connected", "Setsuna");
     socket.on("server patchAnswer", count => {
       Vue.set(this, "count", count);
-    })
+    });
     socket.on("server wait", () => {
-      this.wait()
-    })
+      this.wait();
+    });
     socket.on("server patchQuestion", singleQuestion => {
+      if (typeof navigator.vibrate === "function") navigator.vibrate(500);
+
       Vue.set(this, "count", []);
       Vue.set(this, "quiz", singleQuestion);
       this.isWaiting = false;
@@ -90,22 +84,22 @@ export default {
 
 <style lang="stylus">
 #app {
-  font-family 'Avenir', Helvetica, Arial, sans-serif
-  -webkit-font-smoothing antialiased
-  -moz-osx-font-smoothing grayscale
-  text-align center
-  color #2c3e50
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
 }
 
 * {
-  margin 0
-  padding 0
-  user-select none
+  margin: 0;
+  padding: 0;
+  user-select: none;
 }
 
 .water-back {
-  z-index -1
-  height 100vh
-  overflow hidden
+  z-index: -1;
+  height: 100vh;
+  overflow: hidden;
 }
 </style>

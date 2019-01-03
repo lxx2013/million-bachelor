@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-btn fixed dark fab bottom right color="pink" @click="submit">
+    <v-btn fixed dark fab top right color="pink" @click="submit">
       <v-icon>done</v-icon>
     </v-btn>
     <transition-group name="quiz-list" tag="div">

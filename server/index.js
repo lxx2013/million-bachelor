@@ -4,17 +4,25 @@ var io = require('socket.io')(http);
 import initialQuiz from './data'
 import { latexToDOM } from './util'
 
+var data = initialQuiz
+
 app.get('/admin', function (req, res) {
   res.sendFile(__dirname + '/admin.html');
 });
 app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
 
 /**
- * 全局变量
- * 每个人的类型为{ id: string, name : string}
+ * 同时在线的人员数据
+ * @type {{ id: string, name: string, choice: number[], date: string }[]}
  */
-var onlines = []  //同时在线的人员数据
-var admins = []   //同时在线的admin
+var onlines = []
+
+/**
+ * 同时在线的admin
+ * @type {{id:string, name: string}[]}
+ */
+var admins = []
+
 var Index = 0     //即将发送的题目编号
 var Total = 12    //总题目数量,达到这个数则停止. 而 data 中的题目数量会超过 Total. 将来要从 data 中随机抽取题目
 var NowQuiz = {}  //当前的题目.考虑到有些人网速慢,延迟加载,或者可能断线重连, 要给他们同步当前题目
