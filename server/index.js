@@ -4,9 +4,10 @@ var io = require('socket.io')(http);
 import data from './data'
 import { latexToDOM } from './util'
 
-app.get('/', function (req, res) {
+app.get('/admin', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
+app.use(require('express').static(require('path'.resolve(__dirname, '../dist/'))))
 
 /**
  * 全局变量
@@ -27,7 +28,7 @@ var NowQuzi = {}  //当前的题目.考虑到有些人网速慢,延迟加载,或
  */
 
 io.on('connection', function (socket) {
-  var USER = { id: socket.id , date: (new Date()).toLocaleString(), choice:[]} // 本次链接的 USER
+  var USER = { id: socket.id, date: (new Date()).toLocaleString(), choice: [] } // 本次链接的 USER
   /**
    * 一名用户或 admin 链接
    */
@@ -48,7 +49,7 @@ io.on('connection', function (socket) {
    */
   socket.on('disconnect', () => {
     console.log(`${USER.name} disconnected `)
-    if(onlines.indexOf(USER) !== -1){
+    if (onlines.indexOf(USER) !== -1) {
       onlines.splice(onlines.indexOf(USER), 1)
     } else if (admins.indexOf(USER) !== -1) {
       admins.splice(admins.indexOf(USER), 1)
@@ -58,14 +59,14 @@ io.on('connection', function (socket) {
    * 用户选择了一个选项
    */
   socket.on('client choosed', o => {
-    console.log(USER,o.quizIndex, o.choiceIndex)
+    console.log(USER, o.quizIndex, o.choiceIndex)
     USER.choice[o.quizIndex] = o.choiceIndex
   })
   /**
    * 管理员选择发送下一题
    */
-  socket.on('admin next',()=>{
-    if(Index == Total){
+  socket.on('admin next', () => {
+    if (Index == Total) {
 
       return
     }
@@ -75,12 +76,12 @@ io.on('connection', function (socket) {
     singleQuestion.question = latexToDOM(singleQuestion.question)
     singleQuestion.options = singleQuestion.options.map(x => latexToDOM(x))
     console.log(`singleQuestion : ${singleQuestion}`)
-    if(singleQuestion){
+    if (singleQuestion) {
       patchQuestion(singleQuestion)
       NowQuzi = singleQuestion
     }
   })
-  socket.on('admin reset',()=>{
+  socket.on('admin reset', () => {
     Index = 0
     onlines.forEach(x => x.choice = [])
     patchQuestion({})
@@ -100,8 +101,8 @@ io.on('connection', function (socket) {
  * question.limitSeconds 控制一道题允许的时间, 单位:s 如果为空, 前端会默认15s
  */
 function patchQuestion(question) {
-  if(onlines.length){
-    onlines.forEach(x =>{
+  if (onlines.length) {
+    onlines.forEach(x => {
       let socket = io.sockets.connected[x.id]
       if (socket) {
         socket.emit('server patchQuestion', question)
@@ -122,14 +123,14 @@ function pathchAnswer(io, question) {
 /**
  * 向所有管理员发送 onlines 信息, 每秒同步一次
  */
-setInterval(patchOnlines,1000)
+setInterval(patchOnlines, 1000)
 
-function patchOnlines(){
+function patchOnlines() {
   if (admins.length) {
     admins.forEach(x => {
       let socket = io.sockets.connected[x.id]
       if (socket) {
-        socket.emit('server onlines',onlines)
+        socket.emit('server onlines', onlines)
       }
       else {
         console.log('admins not found,admins:', admins)

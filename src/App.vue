@@ -16,7 +16,7 @@ var href = "";
 if (process.env.NODE_ENV === "development") {
   href = "http://localhost:8801";
 } else {
-  href = "https://api.k-on.live";
+  href = "https://k-on.live";
 }
 
 const socket = io.connect(href);
