@@ -1,6 +1,6 @@
 <template>
   <div class="waiting">
-     <span>请等待发题...</span>
+     <span>Wating...</span>
   </div>
 </template>
 
