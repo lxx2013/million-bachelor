@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Questions v-if="!isWaiting" :quiz="quiz" :count="count" :colors="colors"></Questions>
+    <Questions v-if="!isWaiting" :quiz="quiz" :count="count" :dies="dies" :chances="chances" :colors="colors"></Questions>
     <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
     <Waiting v-if="isWaiting" keep-alive></Waiting>
   </div>
@@ -11,6 +11,7 @@ import WaterBack from "./components/WaterBack";
 import Questions from "./components/questions";
 import Waiting from "./components/waiting";
 import socket from "./socket";
+import { Notification } from 'element-ui';
 
 export default {
   name: "App",
@@ -26,7 +27,10 @@ export default {
       isWaiting: true,
       timer: {},
       count: [],
-      colors: { default: "rgba(255,255,255,0.92)", correct: "green", wrong: "rgba(255,255,255,0.5)" }
+      dies:[],
+      chances:2,
+      colors: { default: "rgba(255,255,255,0.92)", correct: "green", wrong: "rgba(255,255,255,0.5)" ,miss:"#efc4d3" },
+      name:"",
     };
   },
   methods: {
@@ -67,11 +71,18 @@ export default {
   computed: {},
   mounted() {
     this.wait();
-    socket.emit("client connected", "Setsuna");
-    socket.on("server patchAnswer", count => {
-      Vue.set(this, "count", count);
-      this.isWaiting = false;
-      this.setTimer(true,10,this.wait)
+    var that = this
+    that.name = "USER"+(Math.random()*200>>1)
+    socket.emit("client connected",that.name);
+    socket.on("server patchAnswer", data => {
+      Vue.set(this, "count", data.count);
+      that.dies = data.dies
+      that.isWaiting = false;
+      if(that.dies.some(x=>x.name == that.name)){
+        that.chances--
+        alert("你用掉了一次复活机会!剩余:"+that.chances)
+      }
+      //this.setTimer(true,10,this.wait)
     });
     socket.on("server wait", () => {
       this.wait();

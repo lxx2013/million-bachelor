@@ -13,7 +13,7 @@ app.use(require('express').static(require('path').resolve(__dirname, '../dist/')
 
 /**
  * 同时在线的人员数据
- * @type {{ id: string, name: string, choice: number[], date: string }[]}
+ * @type {{ id: string, name: string, choice: number[], date: string,chances:number }[]}
  */
 var onlines = []
 
@@ -39,7 +39,7 @@ var NowQuiz = {}  //当前的题目.考虑到有些人网速慢,延迟加载,或
  */
 
 io.on('connection', function (socket) {
-  var USER = { id: socket.id, date: (new Date()).toLocaleString(), choice: [] } // 本次链接的 USER
+  var USER = { id: socket.id, date: (new Date()).toLocaleString(), choice: [], chances:2} // 本次链接的 USER
   /**
    * 一名用户或 admin 链接
    */
@@ -49,7 +49,7 @@ io.on('connection', function (socket) {
     onlines.push(USER)
     if(Object.keys(NowQuiz).length == 0)
       socket.emit('server wait')
-    else
+    else if(onlines.filter(x=>x.id==USER.id)[0].chances > 0)
       socket.emit('server patchQuestion', NowQuiz)
   })
   socket.once('admin connected', name => {
@@ -155,16 +155,19 @@ function patchQuestion(question) {
  * 向全员广播上题答案
  */
 function pathchAnswer() {
-  var count = [0,0,0,0]
-  NowQuiz.Index
+  var count = [0,0,0,0],dies = []
   onlines.forEach(x=>{
-    let choice = x.choice[NowQuiz.Index] //可能为 null, 0, 1, 2, 3这几个值
+    let choice = x.choice[NowQuiz.Index] //可能为 null(无提交或超时), 0, 1, 2, 3这几个值
     if(choice >=0){
       count[choice] ++
     }
+    if(x.chances > 0  && choice != NowQuiz.answer.index){
+      x.chances--
+      dies.push(x)
+    }
   })
   console.log('patchAnswer ',count)
-  io.emit('server patchAnswer', count)
+  io.emit('server patchAnswer', { count , dies})
 }
 /**
  * 向所有管理员发送最新的题库

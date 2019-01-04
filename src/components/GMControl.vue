@@ -9,11 +9,13 @@
     <table class="scoreboard">
       <tr>
         <th width="30%">玩家</th>
-        <th>情况</th>
+        <th>选项情况</th>
+        <th>剩余复活机会</th>
       </tr>
       <tr v-for="row in onlines" :key="row.id">
         <td>{{ row.name }}</td>
         <td>{{ row.choice }}</td>
+        <td>{{ row.chances }}</td>
       </tr>
     </table>
   </v-container>

@@ -15,7 +15,7 @@
     </v-card>
     <div class="options" v-for="(option,index) in quiz.options" :key="index">
       <v-btn
-        :color="count.length==0 ? colors.default : (index == quiz.answer.index ? colors.correct : colors.wrong)"
+        :color="computedColor(index)"
         @click="choose(index)"
         style="width:80%;"
         v-html="option"
@@ -25,12 +25,14 @@
       </div>
       <span class="status" v-if="!isAnswer">{{ index == quiz.choiceIndex ? '已选择' :''}}</span>
       <span class="status" v-if="isAnswer">{{count[index]}}人</span>
+      <span class="dies" v-if="isAnswer && index == quiz.answer.index"> {{dies.length}}人复活 </span>
     </div>
   </div>
 </template>
 
 <script>
 import socket from "../socket";
+
 
 export default {
   name: "Questions",
@@ -45,8 +47,10 @@ export default {
     },
     colors: {
       type: Object,
-      default: { default: "blue", correct: "green", wrong: "grey" }
+      default: { default: "blue", correct: "green", wrong: "grey" , miss :"#efc4d3" }
     },
+    dies:Array,
+    chances:Number,
   },
   data() {
     /**
@@ -83,10 +87,28 @@ export default {
     },
     hasTooltip() {
       return this.tooltip.content.length > 0;
-    }
+    },
   },
   methods: {
+    computedColor(index){
+      if(this.count.length ==0){
+        return this.colors.default
+      }
+      else if(index == this.quiz.answer.index ){
+        return this.colors.correct
+      }
+      else if(index == this.quiz.choiceIndex){
+        return this.colors.miss
+      }else{
+        return this.colors.wrong
+      }
+    },
     choose(choiceIndex) {
+      if(this.chances == 0){
+        this.tooltip.index = choiceIndex;
+        this.tooltip.content = "无复活机会,不能再提交,请等待下一轮"
+        return
+      }
       this.clickTimes++
       if(this.clickTimes == 1){
         //第一次点击, 提交答案
@@ -160,6 +182,17 @@ export default {
 
     .wrong {
       background-color grey
+    }
+    .dies{
+      position absolute
+      margin-top:-10px
+      margin-left:-50px
+      min-width:50px
+      height:20px
+      background: linear-gradient(to right,#e0755b, #df7892) no-repeat;
+      color: white
+      border-radius 20px
+      padding 0 5px
     }
   }
 }
