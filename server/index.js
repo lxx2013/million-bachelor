@@ -6,9 +6,6 @@ import { latexToDOM } from './util'
 
 var data = initialQuiz
 
-app.get('/admin', function (req, res) {
-  res.sendFile(__dirname + '/admin.html');
-});
 app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
 
 /**

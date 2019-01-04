@@ -21,7 +21,7 @@ export default {
   width:100vw;
   height:100vh;
   line-height:100vh;
-  background: #000000d0;
+  background: rgba(0,0,0,0.9);
   text-align: center;
 }
 .waiting span{
