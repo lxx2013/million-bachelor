@@ -11,7 +11,6 @@ import WaterBack from "./components/WaterBack";
 import Questions from "./components/questions";
 import Waiting from "./components/waiting";
 import socket from "./socket";
-import { Notification } from 'element-ui';
 
 export default {
   name: "App",
