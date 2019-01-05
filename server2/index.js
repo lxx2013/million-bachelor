@@ -192,6 +192,7 @@ function playerLogin(socket) {
 
 io.on('connection', function (socket) {
   var ref = socket.handshake.query.ref + ""
+  console.log(`ref:${ref},    socket.id:${socket.id}`)
   if (ref === "/admin") {
     adminLogin(socket)
   } else {

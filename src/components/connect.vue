@@ -1,16 +1,16 @@
 <template>
-  <div class="waiting">
+  <div class="connect">
     <div class="container">
       <p>你好,</p>
       <p>{{playerInfo.name}}</p>
-      <p>Waiting...</p>
+      <p><img :src="playerInfo.avatar" alt="" width="30vw"></p>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "Waiting",
+  name: "connect",
   props: {
     playerInfo: {
       type: Object,
@@ -23,7 +23,7 @@ export default {
 </script>
 
 <style scoped >
-.waiting {
+.connect {
   position: fixed;
   z-index: 2;
   top: 0;
@@ -36,11 +36,11 @@ export default {
   background: rgba(0, 0, 0, 0.9);
   text-align: center;
 }
-.waiting .container{
+.connect .container{
   display: inline-block;
   line-height: 1.5;
 }
-.waiting p {
+.connect p {
   color: white;
   font-size: 30px;
 }

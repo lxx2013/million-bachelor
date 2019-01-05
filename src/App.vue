@@ -1,13 +1,15 @@
 <template>
   <div id="app">
-    <Waiting  v-show="is('waiting')"></Waiting>
+    <Connect v-if="is('connect')" :playerInfo="playerInfo"></Connect>
+    <Waiting v-show="is('waiting')"></Waiting>
     <Question v-if="is('question')"></Question>
-    <Answer   v-if="is('answer')"></Answer>
-    <Score    v-if="is('score')"></Score>
+    <Answer v-if="is('answer')"></Answer>
+    <Score v-if="is('score')"></Score>
   </div>
 </template>
 
 <script>
+import Connect from "./components/connect"
 import Question from "./components/question"
 import Waiting from "./components/waiting"
 import Answer from "./components/answer"
@@ -17,28 +19,33 @@ import socket from "./socket"
 export default {
   name: "App",
   components: {
-    Questions,
+    Connect,
+    Question,
     Waiting,
     Answer,
     Score
   },
   data() {
-    state:'waiting'
+    return {
+      state: "connect",
+      playerInfo: {}
+    }
   },
   methods: {
-    is(str){
+    is(str) {
       return str == this.state
     }
   },
   computed: {},
   mounted() {
-    socket.on('connectInfo',()=>{})
-    socket.on('question',()=>{})
-    socket.on('wait',()=>{})
-    socket.on('answer',()=>{})
-    socket.on('connectInfo',()=>{})
+    var that = this
+    socket.on("connectInfo", o => { that.playerInfo = o })
+    socket.on("question", () => { })
+    socket.on("wait", () => { })
+    socket.on("answer", () => { })
+    socket.on("connectInfo", () => { })
   }
-};
+}
 </script>
 
 <style lang="stylus">
@@ -55,5 +62,4 @@ export default {
   padding 0
   user-select none
 }
-
 </style>
