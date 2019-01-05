@@ -1,13 +1,17 @@
+/// @ts-check
 /// <reference path="../types.d.ts" />
 
 var app = require('express')();
-var http = require('http').Server(app);
+var http = new (require('http').Server)(app);
 var io = require('socket.io')(http);
+var WechatBridge = require('./wechatBridge');
 
 /** 当前题号 */
 var index = 0
 
 var nowAcceptAnswers = false
+var acceptAnswerUntil = 0
+var answeringTime = 15000
 
 /** 还活着多少人 */
 var peopleLeft = 0
@@ -15,8 +19,8 @@ var peopleLeft = 0
 /** @type {Server.Question[]} */
 var questions = require('./defaultQuestions');
 
-/** @type {Server.Player[]} */
-var players = []
+/** @type {Map<string, Server.Player>} 从 openid 到玩家的映射 */
+var players = new Map()
 
 /**
  * 处理一个新的管理员连接
@@ -26,7 +30,9 @@ function adminLogin(socket) {
   /** @type {Server.Admin} */  var admin = { socket }
   socket.join('admin')
 
-  socket.on("useQuiz", payload => { questions = payload.questions })
+  socket.on("getQuiz", () => { socket.emit("getQuiz", questions) })
+  socket.on("useQuiz", newQuestions => { questions = newQuestions; startGame() })
+  socket.on("reset", startGame)
   socket.on("nextQuestion", emitNextQuestion)
   socket.on("showWait", emitWait)
   socket.on("showAnswer", statAndEmitAnswer)
@@ -39,7 +45,8 @@ function startGame() {
     player.life = 3
     player.score = 0
   })
-  peopleLeft = players.length
+  nowAcceptAnswers = false
+  peopleLeft = players.size
   index = -1
   io.to("player").emit("wait", {})
 }
@@ -49,6 +56,7 @@ function emitNextQuestion() {
   if (index >= questions.length - 1) return false
   index++
   nowAcceptAnswers = true
+  acceptAnswerUntil = +new Date() + answeringTime
 
   let question = questions[index]
 
@@ -62,7 +70,7 @@ function emitNextQuestion() {
       total: questions.length,
       question: question.question,
       options: question.options,
-      time: 15000,
+      time: answeringTime,
       peopleLeft: peopleLeft,
     }))
   })
@@ -70,6 +78,7 @@ function emitNextQuestion() {
 
 /** 给玩家发送等待屏 */
 function emitWait() {
+  nowAcceptAnswers = false
   io.to('player').emit('wait', {})
 }
 
@@ -80,8 +89,10 @@ function statAndEmitAnswer() {
   /** @type {Set<Server.Player>} */
   let resurrection = new Set()
 
-  /** @type {Set<number[]>} */
+  /** @type {Array<number>} */
   let optionNumbers = new Array(question.options.length).fill(0)
+
+  nowAcceptAnswers = false
 
   // 先更新统计
   players.forEach(player => {
@@ -97,7 +108,6 @@ function statAndEmitAnswer() {
         // 使用了复活机会?
         if (player.life > 0) {
           resurrection.add(player)
-          player.score++
         } else {
           peopleLeft-- // 他死了
         }
@@ -131,7 +141,9 @@ function statAndEmitAnswer() {
 
 /** 给玩家发送得分榜 */
 function emitScoreBoard() {
-  var playerSorted = players.filter(p => p.score >= questions.length - 2).sort((a, b) => b.score - a.score)
+  var playerSorted = Array.from(players.values())
+    .filter(p => p.score >= questions.length - 2)
+    .sort((a, b) => b.score - a.score)
   io.to('player').emit('score', /** @type {ServerToUser.Score} */({
     users: playerSorted.map(player => /** @type {ServerToUser.Score['users'][0]} */({
       id: player.openid,
@@ -146,33 +158,39 @@ function emitScoreBoard() {
  * 处理一个新的玩家连接
  * @param {SocketIO.Socket} socket
  */
-function playerLogin(socket) {
+async function playerLogin(socket) {
+  let wechatAccount = await WechatBridge.getWechatAccount(socket)
+
   // 如果用户还没授权微信登录
-  if (false) {
-    socket.emit('connectInfo', {
-      id: "", name: "", avatar: "",
-      redirect: "https://wx.qq.com/xxx"
-    })
+  if (!wechatAccount) {
+    console.log("Player not login -- " + socket.id)
+    let redirect = await WechatBridge.getAuthRedirectURL(socket)
+    socket.emit('connectInfo', { id: "", name: "", avatar: "", redirect })
     return
   }
 
-  /** @type {Server.Player} */
-  var player = {
-    avatar: "http://profilepicturesdp.com/wp-content/uploads/2018/06/avatar-profile-pictures-3.png",
-    name: "蜜汁玩家",
-    openid: "wxID-12345",
-    life: 0, // 开局时重置
-    score: 0,
-    answer: -1,
-    socket,
+  var player = players.get(wechatAccount.openid)
+
+  if (!player) {
+    console.log(`New player -- ${wechatAccount.name} -- ${socket.id}`)
+    player = {
+      ...wechatAccount,
+      life: 0, // 开局时重置
+      score: 0,
+      answer: -1,
+      socket,
+    }
+    players.set(wechatAccount.openid, player)
+  } else {
+    console.log(`Player reconnect -- ${wechatAccount.name} -- ${socket.id}`)
+    player.socket = socket
   }
 
-  players.push(player)
   socket.join('player')
-  socket.on('disconnect', () => {
-    let idx = players.indexOf(player)
-    if (idx >= 0) players.splice(idx, 1)
-  })
+  // socket.on('disconnect', () => {
+  //   let idx = players.indexOf(player)
+  //   if (idx >= 0) players.splice(idx, 1)
+  // })
 
   socket.on('answer',  /** @param {UserToServer.Answer} incoming */(incoming) => {
     if (!nowAcceptAnswers) return // 现在不接受回答
@@ -188,11 +206,27 @@ function playerLogin(socket) {
     name: player.name,
     redirect: "",
   }))
+
+  if (nowAcceptAnswers && player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil) {
+    // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷
+    let question = questions[index]
+    socket.emit('question', /** @type {ServerToUser.Question} */({
+      answerable: player.life > 0,
+      chance: player.life > 0 ? player.life - 1 : 0,
+      index: index + 1,
+      total: questions.length,
+      question: question.question,
+      options: question.options,
+      time: acceptAnswerUntil - (+new Date),
+      peopleLeft: peopleLeft,
+    }))
+  }
 }
 
 io.on('connection', function (socket) {
   var ref = socket.handshake.query.ref + ""
-  if (ref === "/admin") {
+  console.log("Connection. Ref = " + ref)
+  if (/^\/admin/.test(ref)) {
     adminLogin(socket)
   } else {
     playerLogin(socket)

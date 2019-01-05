@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <v-btn @click="e('next')">send next question</v-btn>
-    <v-btn @click="e('answer')">answer</v-btn>
-    <v-btn @click="e('wait')">wait</v-btn>
-    <v-btn @click="e('score')">score</v-btn>
-    <v-btn @click="e('reset')">reset</v-btn>
+    <v-btn @click="e('nextQuestion')">发送下一道题</v-btn>
+    <v-btn @click="e('showAnswer')">发送答案</v-btn>
+    <v-btn @click="e('showWait')">进入等待画面</v-btn>
+    <v-btn @click="e('showScore')">发送得分榜</v-btn>
+    <v-btn @click="e('reset')">重置</v-btn>
 
     <table class="scoreboard">
       <tr>
@@ -38,7 +38,7 @@ export default {
   },
   methods: {
     e(event) {
-      socket.emit(`admin ${event}`);
+      socket.emit(event);
     }
   }
 };
