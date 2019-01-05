@@ -12,3 +12,4 @@ yarn.lock
 *.ntvs*
 *.njsproj
 *.sln
+*_old.*
