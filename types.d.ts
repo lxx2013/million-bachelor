@@ -57,6 +57,10 @@ declare namespace ServerToUser {
     peopleLeft: number
   }
 
+  /** "wait"    -- 让玩家进入等待画面 */
+  interface Wait {
+  }
+
   /** "score"   -- 服务器下发积分榜。数组已在服务器排序 */
   interface Score {
     users: Array<{
@@ -103,6 +107,9 @@ declare namespace Server {
     /** 答对的题目数 */
     score: number
 
+    /** 当前题目他做的选项。-1 == 没选择 */
+    answer: number
+
     /** 嗯 */
     socket: SocketIO.Socket
   }
@@ -111,4 +118,18 @@ declare namespace Server {
     /** 嗯 */
     socket: SocketIO.Socket
   }
+}
+
+/** 管理员到服务器 */
+declare namespace AdminToServer {
+  /** "useQuiz" 设置使用的问题 */
+  interface UseQuiz {
+    questions: Server.Question[]
+  }
+
+  /** "reset" 重置 */
+  /** "showWait" 进入等待屏幕 */
+  /** "nextQuestion" 进入下一问题 */
+  /** "showAnswer" 发问题答案 */
+  /** "showScore" 显示得分榜 */
 }

@@ -5,6 +5,7 @@ import io from 'socket.io'
 //   localStorage.debug = '*'
 // }
 
-const WS_SERVER = (process.env.NODE_ENV === "development") ? `http://${location.hostname}:8801` : "https://k-on.live"
+const WS_PATH = "?ref=" + encodeURIComponent(location.pathname)
+const WS_SERVER = (process.env.NODE_ENV === "development") ? `http://${location.hostname}:8801/${WS_PATH}` : `https://k-on.live/${WS_PATH}`
 const socket = io.connect(WS_SERVER)
 export default socket

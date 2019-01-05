@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --disableHostCheck=true --progress --config build/webpack.dev.conf.js --host 0.0.0.0",
     "start": "npm run dev",
-    "server": "node -r esm server/index.js",
-    "dev:server": "nodemon --watch server -r esm server/index.js",
+    "server": "node -r esm server2/index.js",
+    "dev:server": "nodemon --watch server2 -r esm server2/index.js",
     "build": "node build/build.js"
   },
   "dependencies": {
