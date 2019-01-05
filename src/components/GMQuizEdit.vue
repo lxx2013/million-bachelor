@@ -1,8 +1,11 @@
 <template>
   <v-container>
-    <v-btn fixed dark fab top right color="pink" @click="submit">
-      <v-icon>done</v-icon>
-    </v-btn>
+    <div class="qe-actions">
+      <v-btn @click="importX">Import</v-btn>
+      <v-btn @click="exportX">Export</v-btn>
+      <v-btn @click="submit" class="primary">开始游戏</v-btn>
+    </div>
+
     <transition-group name="quiz-list" tag="div">
       <GMQuizCard
         class="quiz-list-item"
@@ -37,12 +40,12 @@ export default {
   },
   mounted() {
     const useQuizList = data => (this.quizList = data);
-    socket.emit("admin getQuiz");
-    socket.on("server allQuiz", useQuizList);
+    socket.emit("getQuiz");
+    socket.on("getQuiz", useQuizList);
     this.useQuizList = useQuizList;
   },
   destroyed() {
-    socket.off("server allQuiz", this.useQuizList);
+    socket.off("getQuiz", this.useQuizList);
   },
   methods: {
     newQuiz() {
@@ -56,18 +59,75 @@ export default {
         }
       });
     },
+    exportX() {
+      downloadFile("quiz.json", JSON.stringify(this.quizList));
+    },
+    importX() {
+      uploadFile(text => {
+        try {
+          this.quizList = JSON.parse(text);
+        } catch (err) {
+          alert("Failed to Import");
+        }
+      });
+    },
     submit() {
-      socket.emit("admin setQuiz", this.quizList);
-      alert('DONE')
+      socket.emit("useQuiz", this.quizList);
+      alert("DONE");
     }
   },
   components: {
     GMQuizCard
   }
 };
+
+var selectFile = document.createElement("input");
+var selectFileCallback = null;
+selectFile.type = "file";
+selectFile.setAttribute("style", "position:absolute;left:0;top:0;opacity:0.01");
+selectFile.addEventListener(
+  "change",
+  () => {
+    var files = selectFile.files;
+    if (files.length !== 1) return;
+
+    var reader = new FileReader();
+    reader.onload = function() {
+      if (typeof selectFileCallback !== "function") return;
+      selectFileCallback(reader.result);
+      selectFileCallback = null;
+    };
+    reader.readAsText(files[0]);
+  },
+  false
+);
+
+function uploadFile(callback) {
+  selectFileCallback = callback;
+  selectFile.value = "";
+  selectFile.click();
+}
+
+var aLink = document.createElement("a");
+var aLinkLastURL = "";
+document.body.appendChild(aLink);
+
+function downloadFile(fileName, content) {
+  if (aLinkLastURL) URL.revokeObjectURL(aLinkLastURL);
+  var blob = new Blob([content]);
+  aLink.download = fileName;
+  aLink.href = aLinkLastURL = URL.createObjectURL(blob);
+  aLink.click();
+}
 </script>
 
 <style>
+.qe-actions {
+  position: fixed;
+  right: 10px;
+  top: 10px;
+  z-index: 100;
+}
 .quiz-list-item {
   transition: all 0.7s;
 }
