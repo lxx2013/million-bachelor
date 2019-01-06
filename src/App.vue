@@ -2,8 +2,8 @@
   <div id="app">
     <Connect v-if="is('connect')" :playerInfo="playerInfo"></Connect>
     <Waiting v-show="is('waiting')"></Waiting>
-    <Question v-if="is('question')"></Question>
-    <Answer v-if="is('answer')"></Answer>
+    <Question v-if="is('question')" :question="question"></Question>
+    <Answer v-if="is('answer')" :answer="answer"></Answer>
     <Score v-if="is('score')"></Score>
   </div>
 </template>
@@ -28,7 +28,9 @@ export default {
   data() {
     return {
       state: "connect",
-      playerInfo: {}
+      playerInfo: {},
+      question: {},
+      answer: {},
     }
   },
   methods: {
@@ -40,9 +42,9 @@ export default {
   mounted() {
     var that = this
     socket.on("connectInfo", o => { that.playerInfo = o })
-    socket.on("question", () => { })
+    socket.on("question", o => { that.question = o; that.state = "question" })
     socket.on("wait", () => { })
-    socket.on("answer", () => { })
+    socket.on("answer", o => { that.answer = o; that.state = "answer" })
     socket.on("connectInfo", () => { })
   }
 }

@@ -1,9 +1,15 @@
 <template>
-<div class="answer"></div>
+<div class="answer">{{answer}}</div>
 </template>
 <script>
 export default{
-  name:'answer'
+  name:'answer',
+  props:{
+    answer:{
+      type:Object,
+      default: ()=>{return {}}
+    }
+  }
 }
 </script>
 

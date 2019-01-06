@@ -1,10 +1,9 @@
 <template>
   <v-container>
-    <v-btn @click="e('next')">send next question</v-btn>
-    <v-btn @click="e('answer')">answer</v-btn>
-    <v-btn @click="e('wait')">wait</v-btn>
-    <v-btn @click="e('score')">score</v-btn>
-    <v-btn @click="e('reset')">reset</v-btn>
+    <v-btn @click="e('nextQuestion')">nextQuestion</v-btn>
+    <v-btn @click="e('showAnswer')">showAnswer</v-btn>
+    <v-btn @click="e('showWait')">showWait</v-btn>
+    <v-btn @click="e('showScore')">showScore</v-btn>
 
     <table class="scoreboard">
       <tr>
@@ -38,7 +37,7 @@ export default {
   },
   methods: {
     e(event) {
-      socket.emit(`admin ${event}`);
+      socket.emit(`${event}`);
     }
   }
 };
