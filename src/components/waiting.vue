@@ -1,8 +1,6 @@
 <template>
   <div class="waiting">
     <div class="container">
-      <p>你好,</p>
-      <p>{{playerInfo.name}}</p>
       <p>Waiting...</p>
     </div>
   </div>
@@ -12,12 +10,7 @@
 export default {
   name: "Waiting",
   props: {
-    playerInfo: {
-      type: Object,
-      default: () => {
-        return {};
-      }
-    }
+
   }
 };
 </script>

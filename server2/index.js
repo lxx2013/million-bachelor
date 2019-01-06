@@ -225,7 +225,7 @@ async function playerLogin(socket) {
 
 io.on('connection', function (socket) {
   var ref = socket.handshake.query.ref + ""
-  console.log("Connection. Ref = " + ref , ",   socket.id: ",socket.id)
+  console.log("Connection. Ref = " + ref)
   if (/^\/admin/.test(ref)) {
     adminLogin(socket)
   } else {

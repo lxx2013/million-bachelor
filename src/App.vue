@@ -1,10 +1,10 @@
 <template>
   <div id="app">
     <Connect v-if="is('connect')" :playerInfo="playerInfo"></Connect>
-    <Waiting v-show="is('waiting')"></Waiting>
+    <Waiting v-show="is('wait')"></Waiting>
     <Question v-if="is('question')" :question="question"></Question>
     <Answer v-if="is('answer')" :answer="answer"></Answer>
-    <Score v-if="is('score')"></Score>
+    <Score v-if="is('score')" :score="score"></Score>
   </div>
 </template>
 
@@ -31,6 +31,7 @@ export default {
       playerInfo: {},
       question: {},
       answer: {},
+      score:{}
     }
   },
   methods: {
@@ -43,9 +44,9 @@ export default {
     var that = this
     socket.on("connectInfo", o => { that.playerInfo = o })
     socket.on("question", o => { that.question = o; that.state = "question" })
-    socket.on("wait", () => { })
+    socket.on("wait", () => { that.state = "wait" })
     socket.on("answer", o => { that.answer = o; that.state = "answer" })
-    socket.on("connectInfo", () => { })
+    socket.on("score", o => { that.score = o; that.state = "score" })
   }
 }
 </script>

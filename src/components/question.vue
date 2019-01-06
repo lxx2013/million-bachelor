@@ -1,7 +1,9 @@
 <template>
   <div class="question">
     {{question}}
-    <v-btn v-for="(option,index) in question.options" :key="index" @click="select(index)">{{option}}</v-btn>
+    <div class="options" v-for="(option,index) in question.options" :key="index">
+      <v-btn  @click="select(index)">{{option}}</v-btn>
+    </div>
   </div>
 </template>
 <script>
@@ -24,4 +26,5 @@ export default {
 </script>
 
 <style lang="stylus">
+
 </style>
