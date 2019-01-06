@@ -120,12 +120,23 @@ declare namespace Server {
   }
 }
 
+/** 服务器到管理员 */
+declare namespace ServerToAdmin {
+  /** "getQuiz" 返回管理员当前的题库 */
+  type GetQuiz = Server.Question[]
+
+  /** "status" 返回当前游戏进展的情况 */
+  interface Status {
+
+  }
+}
+
 /** 管理员到服务器 */
 declare namespace AdminToServer {
-  /** "useQuiz" 设置使用的问题 */
-  interface UseQuiz {
-    questions: Server.Question[]
-  }
+  /** "getQuiz" 获取现在的问题 */
+
+  /** "useQuiz" 设置使用的问题，然后开始游戏 */
+  type UseQuiz = Server.Question[]
 
   /** "reset" 重置 */
   /** "showWait" 进入等待屏幕 */
