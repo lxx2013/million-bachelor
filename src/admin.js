@@ -10,6 +10,12 @@ Vue.use(Vuetify)
 
 socket.on('connect', () => { socket.emit("admin connected", "root"); })
 
+// <link href="https://fonts.lug.ustc.edu.cn/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+var fontLink = document.createElement('link')
+fontLink.href = "https://fonts.lug.ustc.edu.cn/css?family=Roboto:100,300,400,500,700,900|Material+Icons"
+fontLink.rel = "stylesheet"
+document.head.appendChild(fontLink)
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

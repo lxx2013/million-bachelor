@@ -127,12 +127,29 @@ declare namespace ServerToAdmin {
 
   /** "status" 返回当前游戏进展的情况 */
   interface Status {
+    status: number
+    peopleLeft: number
 
+    /** 当前题目（从1开始） */
+    index: number
+    total: number
+    question: Server.Question
+
+    /** 本题复活人数 */
+    resurrectionNumber: number
+
+    /** 每个选项的人数 */
+    optionNumbers: number[]
+
+    /** 这里的 socket 都是 null，只能看 connected */
+    players: (Server.Player & { connected: boolean })[]
   }
 }
 
 /** 管理员到服务器 */
 declare namespace AdminToServer {
+  /** "getStatus" 获取现在的状态 */
+
   /** "getQuiz" 获取现在的问题 */
 
   /** "useQuiz" 设置使用的问题，然后开始游戏 */

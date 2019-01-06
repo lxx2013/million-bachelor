@@ -15,7 +15,7 @@
     <v-content>
       <v-tabs-items v-model="currentTab">
         <v-tab-item value="tab-0">
-          <v-container fluid fill-height>Hello</v-container>
+          <GMQRCode />
         </v-tab-item>
 
         <v-tab-item value="tab-1">
@@ -28,12 +28,13 @@
       </v-tabs-items>
     </v-content>
     <v-footer color="indigo" app>
-      <v-flex white--text text-xs-center>&copy; 2017</v-flex>
+      <v-flex white--text text-xs-center>&copy; 2019</v-flex>
     </v-footer>
   </v-app>
 </template>
 
 <script>
+import GMQRCode from "./components/GMQRCode";
 import GMQuizEdit from "./components/GMQuizEdit";
 import GMControl from "./components/GMControl";
 
@@ -44,6 +45,7 @@ export default {
     };
   },
   components: {
+    GMQRCode,
     GMQuizEdit,
     GMControl
   }

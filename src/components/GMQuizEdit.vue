@@ -1,9 +1,9 @@
 <template>
   <v-container>
     <div class="qe-actions">
-      <v-btn @click="importX">Import</v-btn>
-      <v-btn @click="exportX">Export</v-btn>
-      <v-btn @click="submit" class="primary">开始游戏</v-btn>
+      <v-btn @click="importX">导入</v-btn>
+      <v-btn @click="exportX">导出</v-btn>
+      <v-btn @click="submit" class="yellow">开始游戏</v-btn>
     </div>
 
     <transition-group name="quiz-list" tag="div">
