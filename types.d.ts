@@ -134,6 +134,7 @@ declare namespace ServerToAdmin {
     index: number
     total: number
     question: Server.Question
+    currentQuestionStated: boolean
 
     /** 本题复活人数 */
     resurrectionNumber: number

@@ -61,7 +61,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     }),
     new HtmlWebpackPlugin({
       filename: 'admin.html',
-      template: 'index.html',
+      template: 'admin.html',
       inject: true,
       excludeChunks: ['app']
     }),

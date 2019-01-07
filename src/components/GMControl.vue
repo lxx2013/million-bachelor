@@ -7,13 +7,23 @@
         <v-card>
           <v-layout row wrap>
             <v-flex d-flex xs12>
-              <v-btn :disabled="status === 1" @click="e('nextQuestion')" style="height:64px">
+              <v-btn
+                :disabled="status === 1 && index < total"
+                @click="e('nextQuestion')"
+                style="height:64px"
+                :class="{'light-green lighten-2': currentQuestionStated && index < total}"
+              >
                 <div>
                   <v-icon large medium>help</v-icon>
                   <div>发送下一道题</div>
                 </div>
               </v-btn>
-              <v-btn :disabled="status === 2" @click="e('showAnswer')" style="height:64px">
+              <v-btn
+                :disabled="status === 2"
+                @click="e('showAnswer')"
+                style="height:64px"
+                :class="{'light-green lighten-2': !currentQuestionStated}"
+              >
                 <div>
                   <v-icon large medium>gavel</v-icon>
                   <div>发送答案</div>
@@ -45,16 +55,21 @@
           </v-card-title>
 
           <v-card-text v-if="question">
-            <p style="font-size: 1.3em">{{ question.question }}</p>
+            <p style="font-size: 1.3em">
+              <MarkdownText :value="question.question"/>
+            </p>
             <div>
               <v-btn
                 v-for="(opt, idx) in question.options"
                 :key="idx"
                 :class="{'light-green lighten-2': question.answer.index==idx}"
-                v-text="`${opt} (${optionNumbers[idx]})`"
-              />
+              >
+                <MarkdownText :value="`${opt} (${optionNumbers[idx]})`"/>
+              </v-btn>
             </div>
-            <div>{{ question.answer.hint }}</div>
+            <div>
+              <MarkdownText :value="question.answer.hint"/>
+            </div>
           </v-card-text>
           <v-card-text v-else>
             <p>还没有开始游戏...请点击顶部的重置，然后开始发题</p>
@@ -125,11 +140,12 @@
 <script>
 /// <reference path="../../types.d.ts" />
 import GMGuy from "./GMGuy.vue";
+import MarkdownText from "./MarkdownText.vue";
 
 import socket from "../socket";
 
 export default {
-  components: { GMGuy },
+  components: { GMGuy, MarkdownText },
   data() {
     /** @type {ServerToAdmin.Status} */
     var emptyStatus = {
@@ -139,6 +155,7 @@ export default {
       index: 0,
       total: 1,
       question: null,
+      currentQuestionStated: false,
       optionNumbers: [],
       players: []
     };

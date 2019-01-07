@@ -20,6 +20,7 @@ export default {
 
 <style scoped>
 .gmguy {
+  vertical-align: middle;
   position: relative;
   text-align: center;
   width: 128px;
@@ -29,6 +30,7 @@ export default {
   margin: 5px;
   background: #fff;
   box-shadow: 0 1px 2px #999;
+  overflow: hidden;
 }
 
 .gmguy.dead {

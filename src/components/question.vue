@@ -1,16 +1,23 @@
 <template>
   <div class="question">
     {{question}}
+    <div class="question">
+      <MarkdownText :value="question.question" />
+    </div>
     <div class="options" v-for="(option,index) in question.options" :key="index">
-      <v-btn  @click="select(index)">{{option}}</v-btn>
+      <button  @click="select(index)"><MarkdownText :value="option" /></button>
     </div>
   </div>
 </template>
 <script>
 import socket from '../socket'
+import MarkdownText from "./MarkdownText.vue";
 
 export default {
   name: 'question',
+  components: {
+    MarkdownText,
+  },
   props: {
     question: {
       type: Object,

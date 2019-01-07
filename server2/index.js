@@ -7,6 +7,8 @@ var io = require('socket.io')(http);
 var debounce = require('lodash.debounce');
 var WechatBridge = require('./wechatBridge');
 
+const AUTO_ENTER_WAIT = false
+
 const STATUS_IDLE = 0
 const STATUS_QUESTION = 1
 const STATUS_ANSWER = 2
@@ -15,6 +17,9 @@ var status = STATUS_IDLE
 
 /** 当前题号 */
 var index = -1
+
+/** 当前题目是否已经统计答案 -- 避免管理员重复发送 "answer" 出错 */
+var currentQuestionStated = true
 
 /**
  * 本题复活的人（在发送答案的时候更新）
@@ -76,14 +81,18 @@ function setStatus(newStatus) {
 
   status = newStatus
 
-  if (status === STATUS_QUESTION) {
+  if (status === STATUS_IDLE) {
+    io.to('player').emit('wait', {})
+  }
+
+  if (AUTO_ENTER_WAIT && status === STATUS_QUESTION) {
     __statusTimeout = setTimeout(() => {
       __statusTimeout = 0
       setStatus(STATUS_IDLE)
     }, answeringAcceptableDelay + answeringTime)
   }
 
-  if (status === STATUS_ANSWER) {
+  if (AUTO_ENTER_WAIT && status === STATUS_ANSWER) {
     __statusTimeout = setTimeout(() => {
       __statusTimeout = 0
       emitWait()
@@ -107,6 +116,7 @@ const sendAdminStatus = debounce(function () {
     resurrectionNumber: resurrection.size,
     players: playersTmp,
     optionNumbers,
+    currentQuestionStated,
   }
 
   io.to('admin').emit('status', payload)
@@ -128,6 +138,7 @@ function startGame() {
   setStatus(STATUS_IDLE)
   peopleLeft = players.size
   index = -1
+  currentQuestionStated = true
   io.to("player").emit("wait", {})
 }
 
@@ -139,6 +150,7 @@ function emitNextQuestion() {
   resurrection.clear()
   optionNumbers = new Array(question.options.length).fill(0)
   acceptAnswerUntil = +new Date() + answeringTime
+  currentQuestionStated = false
   setStatus(STATUS_QUESTION)
 
   players.forEach(player => {
@@ -160,20 +172,19 @@ function emitNextQuestion() {
 /** 给玩家发送等待屏 */
 function emitWait() {
   setStatus(STATUS_IDLE)
-  io.to('player').emit('wait', {})
 }
 
 /** 给玩家发布答案，并统计得分、复活之类的事情 */
 function statAndEmitAnswer() {
   // 如果没统计的话
-  if (status !== STATUS_ANSWER) {
+  if (!currentQuestionStated) {
     const question = questions[index]
     if (!question) return
 
+    currentQuestionStated = true
     resurrection.clear()
-    setStatus(STATUS_ANSWER)
 
-    // 先更新统计
+    // 更新统计
     players.forEach(player => {
       if (player.answer !== question.answer.index) {
         if (player.life > 1) {
@@ -194,6 +205,7 @@ function statAndEmitAnswer() {
 
   // 为每一个人发送当前题目的答案
   players.forEach(sendAnswerSceneToPlayer)
+  setStatus(STATUS_ANSWER)
 }
 
 /**
@@ -270,6 +282,7 @@ async function playerLogin(socket) {
     players.set(wechatAccount.openid, player)
   } else {
     console.log(`Player reconnect -- ${wechatAccount.name} -- ${socket.id}`)
+    player.socket.disconnect(true)
     player.socket = socket
   }
 
@@ -304,20 +317,20 @@ async function playerLogin(socket) {
       break;
 
     case STATUS_QUESTION: {
-      if (player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil) {
-        // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷
-        let question = questions[index]
-        socket.emit('question', /** @type {ServerToUser.Question} */({
-          answerable: player.life > 0,
-          chance: player.life > 0 ? player.life - 1 : 0,
-          index: index + 1,
-          total: questions.length,
-          question: question.question,
-          options: question.options,
-          time: acceptAnswerUntil - (+new Date),
-          peopleLeft: peopleLeft,
-        }))
-      }
+      let question = questions[index]
+      let answerable = (player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil)
+      // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷，那么他还可以答题
+
+      socket.emit('question', /** @type {ServerToUser.Question} */({
+        answerable,
+        chance: player.life > 0 ? player.life - 1 : 0,
+        index: index + 1,
+        total: questions.length,
+        question: question.question,
+        options: question.options,
+        time: Math.max(acceptAnswerUntil - (+new Date), 1000),
+        peopleLeft: peopleLeft,
+      }))
     }
       break;
 

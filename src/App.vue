@@ -42,7 +42,15 @@ export default {
   computed: {},
   mounted() {
     var that = this
-    socket.on("connectInfo", o => { that.playerInfo = o })
+    socket.on("connectInfo", o => {
+      that.playerInfo = o
+      if (o.redirect) {
+        localStorage.setItem("millionBachelorID", "")
+
+        if (/android|iphone|ipad/i.test(navigator.userAgent)) location.href = o.redirect
+        else alert("请使用微信登录")
+      }
+    })
     socket.on("question", o => { that.question = o; that.state = "question" })
     socket.on("wait", () => { that.state = "wait" })
     socket.on("answer", o => { that.answer = o; that.state = "answer" })
@@ -53,16 +61,16 @@ export default {
 
 <style lang="stylus">
 #app {
-  font-family 'Avenir', Helvetica, Arial, sans-serif
-  -webkit-font-smoothing antialiased
-  -moz-osx-font-smoothing grayscale
-  text-align center
-  color #2c3e50
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
 }
 
 * {
-  margin 0
-  padding 0
-  user-select none
+  margin: 0;
+  padding: 0;
+  user-select: none;
 }
 </style>
