@@ -6,6 +6,7 @@ var http = new (require('http').Server)(app);
 var io = require('socket.io')(http);
 var debounce = require('lodash.debounce');
 var WechatBridge = require('./wechatBridge');
+var GaLiaoManager = require('./gaLiao');
 
 const AUTO_ENTER_WAIT = false
 
@@ -47,6 +48,8 @@ var questions = require('./defaultQuestions');
 /** @type {Map<string, Server.Player>} 从 openid 到玩家的映射 */
 var players = new Map()
 
+var galiao = new GaLiaoManager(io)
+
 /**
  * 处理一个新的管理员连接
  * @param {SocketIO.Socket} socket
@@ -54,6 +57,8 @@ var players = new Map()
 function adminLogin(socket) {
   /** @type {Server.Admin} */  var admin = { socket }
   socket.join('admin')
+  socket.join(galiao.roomName)
+  socket.emit('chat', { messages: galiao.historyMsgs })
 
   socket.on("getStatus", sendAdminStatus)
   socket.on("getQuiz", () => { socket.emit("getQuiz", questions) })
@@ -287,6 +292,7 @@ async function playerLogin(socket) {
   }
 
   socket.join('player')
+  socket.join(galiao.roomName)
   socket.on('disconnect', () => { sendAdminStatus() })
   sendAdminStatus()
 
@@ -302,6 +308,17 @@ async function playerLogin(socket) {
       sendAdminStatus()
     }
   })
+
+  socket.on('chat', /** @param {UserToServer.Chat} msg */(msg) => {
+    galiao.send({
+      avatar: player.avatar,
+      nickname: player.name,
+      time: +new Date(),
+      text: msg.text,
+    })
+  })
+
+  socket.emit('chat', { messages: galiao.historyMsgs })
 
   socket.emit('connectInfo', /** @type {ServerToUser.ConnectInfo} */({
     id: player.openid,

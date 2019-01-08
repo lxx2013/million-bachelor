@@ -4,7 +4,7 @@ const MBIDStorage = require('./mbidStorage')
 const axios = require('axios').default
 const stringHash = require('./stringHash')
 
-const NOT_USE_WECHAT = false
+const NOT_USE_WECHAT = true
 const appId = "wxbfeab713561ea29c"
 const appSecret = "2facca9696b23da9d79dda2aca8ef663"
 

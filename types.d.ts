@@ -70,6 +70,17 @@ declare namespace ServerToUser {
       score: number  // 对的题数
     }>
   }
+
+  /** "chat"  --  服务端发来的等待画面的尬聊信息。 */
+  interface Chat {
+    messages: Array<{
+      key: string,
+      time: number, // 消息发送时间
+      nickname: string, // 用户呢称
+      avatar: string, // 头像URL
+      text: string, // 消息文字
+    }>
+  }
 }
 
 /** 用户到服务器 */
@@ -81,6 +92,11 @@ declare namespace UserToServer {
 
     /** 从用户看到题目到做出选择花费的时间（毫秒） */
     time: number
+  }
+
+  /** "chat"  --  玩家发一条尬聊信息。 */
+  interface Chat {
+    text: string, // 消息文字
   }
 }
 
@@ -162,3 +178,5 @@ declare namespace AdminToServer {
   /** "showAnswer" 发问题答案 */
   /** "showScore" 显示得分榜 */
 }
+
+declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
