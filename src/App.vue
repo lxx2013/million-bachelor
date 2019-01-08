@@ -11,7 +11,6 @@
 <script>
 import Connect from "./components/connect"
 import Question from "./components/question"
-import Waiting from "./components/waiting"
 import Answer from "./components/answer"
 import Score from "./components/score"
 import GaLiao from "./components/GaLiao"
@@ -22,7 +21,6 @@ export default {
   components: {
     Connect,
     Question,
-    Waiting,
     Answer,
     Score,
     GaLiao
