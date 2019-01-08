@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Connect v-if="is('connect')" :playerInfo="playerInfo"></Connect>
-    <Waiting v-show="is('wait')"></Waiting>
+    <GaLiao v-show="is('wait')"></GaLiao>
     <Question v-if="is('question')" :question="question" @emitClick="emitClick"></Question>
     <Answer v-if="is('answer')" :answer="answer" :playerInfo="playerInfo"></Answer>
     <Score v-if="is('score')" :score="score"></Score>
@@ -14,6 +14,7 @@ import Question from "./components/question"
 import Waiting from "./components/waiting"
 import Answer from "./components/answer"
 import Score from "./components/score"
+import GaLiao from "./components/GaLiao"
 import socket from "./socket"
 
 export default {
@@ -23,7 +24,8 @@ export default {
     Question,
     Waiting,
     Answer,
-    Score
+    Score,
+    GaLiao
   },
   data() {
     return {
