@@ -1,9 +1,9 @@
 <template>
   <div class="question">
     <div class="top">
-      <div class="top-left">
+      <div class="top-left" :class="{'grey' : question.chance < 1}">
         <i class="material-icons">favorite</i>
-        复活卡{{question.chance}}
+        <span>复活卡{{question.chance}}</span>
       </div>
       <div class="top-right">
         ●
@@ -29,10 +29,12 @@
       </div>
     </section>
     {{question}}
+    <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
   </div>
 </template>
 <script>
 import Clock from "./clock.vue";
+import WaterBack from "./WaterBack.vue"
 import socket from '../socket'
 import MarkdownText from "./MarkdownText.vue";
 
@@ -41,6 +43,7 @@ export default {
   components: {
     MarkdownText,
     Clock,
+    WaterBack
   },
   props: {
     question: {
@@ -51,6 +54,8 @@ export default {
   data() {
     return {
       leftTime: 1000,
+      water:0,
+      timer:[],
     }
   },
   methods: {
@@ -60,12 +65,19 @@ export default {
   },
   mounted() {
     this.leftTime = this.question.time/1000
-    this.timer = setInterval(()=>{
+    this.timer[0] = setInterval(()=>{
       this.leftTime = this.leftTime - 1
       if(this.leftTime <=0 ){
-        clearInterval(this.timer)
+        clearInterval(this.timer[0])
       }
     },1000)
+    this.water = (15000 - this.question.time) /150
+    this.timer[1] = setInterval(() => {
+          this.water += 102 / ((1000 / 33) * 15);
+          if (this.water >= 100) {
+            clearInterval(this.timer[1]);
+          }
+        }, 33);
   }
 }
 </script>
@@ -80,13 +92,39 @@ export default {
     justify-content space-between
 
     .top-left {
-      width 20vw
+      width 100px
+      height 33px
+      line-height 33px
+      border-radius 33px
       color white
-      background-color pink
+      text-align left
+      vertical-align center
+      background-color rgba(150,150,255,0.8)
+      i{
+        border-radius 50%
+        font-size 20px
+        background-color rgba(255,110,142,1)
+        width 33px
+        height 33px
+        line-height 33px
+        text-align center
+        vertical-align center
+      }
+      span{
+        font-size 14px
+        vertical-align top
+        padding 0.3em 0
+      }
+      &.grey{
+        background-color rgba(0,0,0,0.5)
+        i{
+          background-color rgba(0,0,0,0.2)
+        }
+      }
     }
 
     .top-right:first-letter {
-      color green
+      color rgba(0,255,0,1)
     }
   }
 
@@ -163,6 +201,9 @@ export default {
         box-shadow 0 0 20px 1px rgba(0, 0, 0, 0.2)
       }
     }
+  }
+  .water-back{
+    z-index -1
   }
 }
 </style>
