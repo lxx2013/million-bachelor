@@ -1,8 +1,8 @@
 <template>
-  <div class="button" @click="click">
+  <div class="button" @click="click" tabindex="0">
     <slot></slot>
     <div v-if="info.length>0" class="info">{{info}}</div>
-    <div class="tooltip">{{tooltip}}</div>
+    <div class="tooltip" :style="`left:${xx}px; bottom:${yy}px`" :key="tooltip">{{tooltip}}</div>
   </div>
 </template>
 
@@ -27,6 +27,8 @@ export default {
       info:'',
       clickTimes: 0,
       tooltip:'',
+      xx:0,
+      yy:0,
       tooltipContent: [
         "已经选了就不能再选了哦",
         "富强",
@@ -45,18 +47,22 @@ export default {
     }
   },
   methods: {
-    click() {
+    click(event) {
+      console.log(event)
+
       if (this.question){
         this.$emit('emitClick',this.index)
         this.info = "已选择"
-        this.showTooltip()
+        this.showTooltip(event)
       }
       if(this.answer){
-        this.showTooltip()
+        this.showTooltip(event)
       }
     },
-    showTooltip() {
+    showTooltip(ev) {
       this.clickTimes++
+      this.xx = ev.layerX
+      this.yy = ev.layerY
       if(this.clickTimes == 1){
         this.tooltip = "提交成功"
       }
@@ -74,6 +80,8 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .button {
+  cursor pointer
+  perspective 600px
   width 100%
   padding 0.8em 4em
   border-radius 4em
@@ -81,6 +89,12 @@ export default {
   background #fefefe
   box-shadow 0 0 20px 1px rgba(0, 0, 0, 0.2)
   position relative
+
+
+  &:active {
+    transform translateY(5px)
+  }
+
   .info{
     color grey
     font-size 0.8em
@@ -90,23 +104,27 @@ export default {
     transform translate(-50%,-50%)
   }
   .tooltip{
-    animation jump 5s ease
+    padding 5px 10px
+    position absolute
+    animation jump 1s ease
+    animation-fill-mode both
     color white
+    pointer-events none
     background-color rgba(0,0,0,0.8)
-
   }
 }
 @keyframes jump {
   0%{
     opacity 0
-    transform: perspective(600px) rotate3d(1,0,0, -45deg)
+    transform: translateY(20px) rotateX(-45deg)
   }
-  75%{
+  25%, 75%{
     opacity 1
-    transform: perspective(600px) rotate3d(1,0,0, 0deg)
+    transform: translateY(0px) rotateX(0deg)
   }
   100%{
     opacity 0
+    transform: translateY(-20px) rotateX(45deg)
   }
 }
 </style>
