@@ -31,7 +31,7 @@ export default {
       playerInfo: {},
       question: {},
       answer: {},
-      score:{}
+      score: {}
     }
   },
   methods: {
@@ -61,16 +61,19 @@ export default {
 
 <style lang="stylus">
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+  font-family 'Avenir', Helvetica, Arial, sans-serif
+  -webkit-font-smoothing antialiased
+  -moz-osx-font-smoothing grayscale
+  text-align center
+  color #2c3e50
 }
-
+body{
+    background #fafafa
+}
 * {
-  margin: 0;
-  padding: 0;
-  user-select: none;
+  margin 0
+  padding 0
+  user-select none
+  box-sizing border-box
 }
 </style>
