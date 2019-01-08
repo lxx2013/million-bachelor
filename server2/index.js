@@ -215,7 +215,7 @@ function statAndEmitAnswer() {
 function sendAnswerSceneToPlayer(player) {
   let question = questions[index];
   player.socket.emit('answer', /** @type {ServerToUser.Answer} */({
-    index: index,
+    index: index + 1,
     total: questions.length,
     question: question.question,
     options: question.options,

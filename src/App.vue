@@ -2,8 +2,8 @@
   <div id="app">
     <Connect v-if="is('connect')" :playerInfo="playerInfo"></Connect>
     <Waiting v-show="is('wait')"></Waiting>
-    <Question v-if="is('question')" :question="question"></Question>
-    <Answer v-if="is('answer')" :answer="answer"></Answer>
+    <Question v-if="is('question')" :question="question" @emitClick="emitClick"></Question>
+    <Answer v-if="is('answer')" :answer="answer" :playerInfo="playerInfo"></Answer>
     <Score v-if="is('score')" :score="score"></Score>
   </div>
 </template>
@@ -28,6 +28,7 @@ export default {
   data() {
     return {
       state: "connect",
+      mountTime :'',
       playerInfo: {},
       question: {},
       answer: {},
@@ -37,11 +38,15 @@ export default {
   methods: {
     is(str) {
       return str == this.state
+    },
+    emitClick(index){
+      socket.emit('answer',{ answer: index, time:(new Date() - this.mountTime)})
     }
   },
   computed: {},
   mounted() {
     var that = this
+    that.mountTime = new Date()
     socket.on("connectInfo", o => {
       that.playerInfo = o
       if (o.redirect) {

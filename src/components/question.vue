@@ -22,10 +22,10 @@
       <div class="content">
         <MarkdownText :value="question.question"/>
       </div>
-      <div class="options" v-for="(option,index) in question.options" :key="index">
-        <div class="button" @click="select(index)">
-          <MarkdownText :value="option"/>
-        </div>
+      <div class="options" v-for="(option,index) in question.options" :key="index" >
+        <Button :question="question" :index="index" @emitClick="index=>$emit('emitClick',index)">
+          <MarkdownText :value="option" />
+        </Button>
       </div>
     </section>
     {{question}}
@@ -33,17 +33,19 @@
   </div>
 </template>
 <script>
-import Clock from "./clock.vue";
+import Clock from "./clock.vue"
+import Button from "./button.vue"
 import WaterBack from "./WaterBack.vue"
 import socket from '../socket'
-import MarkdownText from "./MarkdownText.vue";
+import MarkdownText from "./MarkdownText.vue"
 
 export default {
   name: 'question',
   components: {
     MarkdownText,
     Clock,
-    WaterBack
+    WaterBack,
+    Button,
   },
   props: {
     question: {
