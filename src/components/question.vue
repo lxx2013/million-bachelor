@@ -115,7 +115,7 @@ export default {
       span{
         font-size 14px
         vertical-align top
-        padding 0.3em 0
+        padding 0.3em 0 0 0
       }
       &.grey{
         background-color rgba(0,0,0,0.5)
@@ -126,6 +126,7 @@ export default {
     }
 
     .top-right b{
+      line-height 33px
       color rgba(0,255,0,1)
     }
   }
@@ -193,16 +194,6 @@ export default {
       text-align left
     }
 
-    .options {
-      .button {
-        width 100%
-        padding 0.8em 4em
-        border-radius 4em
-        margin 4vh 0
-        background #fefefe
-        box-shadow 0 0 20px 1px rgba(0, 0, 0, 0.2)
-      }
-    }
   }
   .water-back{
     z-index -1

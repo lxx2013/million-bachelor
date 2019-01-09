@@ -27,6 +27,9 @@ declare namespace ServerToUser {
     /** 用户可以回答问题 */
     answerable: boolean
 
+    /** 用户曾经做出的选择*/
+    yourAnswer: number
+
     /** 场上剩余人数 */
     peopleLeft: number
   }

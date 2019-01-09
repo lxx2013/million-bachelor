@@ -7,7 +7,7 @@
       </div>
       <div class="top-right">
         <b>●</b>
-        <span>{{answer.peopleLeft}}人</span>
+        <span>{{answer.peopleLeft}} 人存活</span>
       </div>
     </div>
     <section class="card">
@@ -127,8 +127,11 @@ export default {
       }
     }
 
-    .top-right b{
-      color rgba(0,255,0,1)
+    .top-right {
+      line-height 33px
+      b{
+        color rgba(0,255,0,1)
+      }
     }
   }
 
@@ -194,16 +197,6 @@ export default {
       text-align left
     }
 
-    .options {
-      .button {
-        width 100%
-        padding 0.8em 4em
-        border-radius 4em
-        margin 4vh 0
-        background #fefefe
-        box-shadow 0 0 20px 1px rgba(0, 0, 0, 0.2)
-      }
-    }
   }
   .water-back{
     z-index -1

@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       state: "connect",
-      mountTime :'',
+      mountTime: '',
       playerInfo: {},
       question: {},
       answer: {},
@@ -39,8 +39,10 @@ export default {
     is(str) {
       return str == this.state
     },
-    emitClick(index){
-      socket.emit('answer',{ answer: index, time:(new Date() - this.mountTime)})
+    emitClick(index) {
+      socket.emit('answer', { answer: index, time: (new Date() - this.mountTime) })
+      Vue.set(this.question,'selected', 1)
+      Vue.set(this.question,'selectedIndex' , index)
     }
   },
   computed: {},
@@ -74,9 +76,16 @@ export default {
   max-width 450px
   margin 0 auto
 }
-body{
-    background #fafafa
+
+body {
+  background #fafafa
 }
+
+html, body {
+  -webkit-text-size-adjust 100%
+  -webkit-tap-highlight-color rgba(0, 0, 0, 0)
+}
+
 * {
   margin 0
   padding 0

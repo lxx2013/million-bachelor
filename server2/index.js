@@ -163,6 +163,7 @@ function emitNextQuestion() {
 
     player.socket.emit('question', /** @type {ServerToUser.Question} */({
       answerable: player.life > 0,
+      yourAnswer:player.answer,
       chance: player.life > 0 ? player.life - 1 : 0,
       index: index + 1,
       total: questions.length,
@@ -340,6 +341,7 @@ async function playerLogin(socket) {
 
       socket.emit('question', /** @type {ServerToUser.Question} */({
         answerable,
+        yourAnswer:player.answer,
         chance: player.life > 0 ? player.life - 1 : 0,
         index: index + 1,
         total: questions.length,
