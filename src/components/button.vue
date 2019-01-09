@@ -2,7 +2,7 @@
   <div class="button" @click="click" tabindex="0">
     <slot></slot>
     <div v-if="info.length>0" class="info">{{info}}</div>
-    <div class="tooltip" :style="`left:${xx}px; bottom:${yy}px`" :key="tooltip">{{tooltip}}</div>
+    <div class="tooltip" :style="`left:${xx}px; bottom:${yy+30}px`" :key="tooltip">{{tooltip}}</div>
   </div>
 </template>
 
@@ -48,8 +48,6 @@ export default {
   },
   methods: {
     click(event) {
-      console.log(event)
-
       if (this.question){
         this.$emit('emitClick',this.index)
         this.info = "已选择"
@@ -94,6 +92,9 @@ export default {
   &:active {
     transform translateY(5px)
   }
+  &:focus{
+    outline none
+  }
 
   .info{
     color grey
@@ -104,7 +105,8 @@ export default {
     transform translate(-50%,-50%)
   }
   .tooltip{
-    padding 5px 10px
+    padding 0px 5px
+    border-radius 5px
     position absolute
     animation jump 1s ease
     animation-fill-mode both

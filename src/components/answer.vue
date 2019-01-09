@@ -6,8 +6,8 @@
         <span>复活卡{{answer.yourChance}}</span>
       </div>
       <div class="top-right">
-        ●
-        {{answer.peopleLeft}}人
+        <b>●</b>
+        <span>{{answer.peopleLeft}}人</span>
       </div>
     </div>
     <section class="card">
@@ -127,7 +127,7 @@ export default {
       }
     }
 
-    .top-right:first-letter {
+    .top-right b{
       color rgba(0,255,0,1)
     }
   }
