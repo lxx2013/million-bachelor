@@ -125,9 +125,11 @@ export default {
       }
     }
 
-    .top-right b{
+    .top-right {
       line-height 33px
-      color rgba(0,255,0,1)
+      b{
+        color rgba(0,255,0,1)
+      }
     }
   }
 

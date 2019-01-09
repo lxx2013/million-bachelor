@@ -65,7 +65,7 @@ export default {
     },
     buttonStyle() {
       if (this.question && (this.question.yourAnswer == this.index || this.question.selected && this.question.selectedIndex == this.index)) {
-        return `background: #6c51f0 !important ;color white`
+        return `background: #6c51f0 !important ;color:white`
       }
       if (this.answer) {
         var answer = this.answer.yourAnswer

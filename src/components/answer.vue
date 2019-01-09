@@ -117,7 +117,7 @@ export default {
       span{
         font-size 14px
         vertical-align top
-        padding 0.3em 0
+        padding 0.3em 0 0 0
       }
       &.grey{
         background-color rgba(0,0,0,0.5)
