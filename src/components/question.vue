@@ -11,7 +11,6 @@
       </div>
     </div>
     <section class="card">
-      <div class="back-clock"></div>
       <div class="clock">
         <Clock :value="leftTime" :max="15"></Clock>
       </div>
@@ -157,32 +156,15 @@ export default {
     }
 
     .clock {
-      background blue
       position absolute
+      background #fafafa
+      z-index 0
       top 0
       left 50%
       width 3em
       height 3em
       border-radius 50%
       transform translate(-50%, -50%)
-
-      .svg {
-        width 3em
-        height 3em
-        background blue
-        border-radius 50%
-      }
-
-      &:before {
-        content ''
-        position absolute
-        left -1.5em
-        width 6em
-        height 6em
-        border-radius 50%
-        background #fafafa
-        z-index -1
-      }
     }
 
     .title {

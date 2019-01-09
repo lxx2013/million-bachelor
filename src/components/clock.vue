@@ -2,25 +2,36 @@
   <div class="svg-clock">
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="22.857142857142858 22.857142857142858 45.714285714285715 45.714285714285715"
+      viewBox="-25 -67.68 50 135.36"
       style="transform: rotate(-90deg);-webkit-transform: rotate(-90deg);"
     >
+      <path
+        d="M0 -35.92 Q 0 -26.92 9.29 -23.22 L 9.29 23.22 Q 0 26.92 0 35.92 Z"
+        fill="#fafafa"
+      ></path>
+      <circle
+        fill="#fafafa"
+        cx="0"
+        cy="0"
+        r="25"
+      ></circle>
       <circle
         fill="transparent"
-        cx="45.714285714285715"
-        cy="45.714285714285715"
+        cx="0"
+        cy="0"
         r="20"
-        stroke-width="5.714285714285714"
+        :stroke="backColor"
+        stroke-width="5"
         stroke-dasharray="125.664"
         stroke-dashoffset="0"
       ></circle>
       <circle
         fill="transparent"
-        cx="45.714285714285715"
-        cy="45.714285714285715"
+        cx="0"
+        cy="0"
         r="20"
         :stroke="color"
-        stroke-width="5.714285714285714"
+        stroke-width="5"
         :stroke-dasharray="stokeDash"
       ></circle>
     </svg>
@@ -34,12 +45,16 @@ export default {
     min: { type: Number | String, default: 0 },
     max: { type: Number | String, default: 100 },
     value: {
-      type: Number,
+      type: Number | String,
       default: 100
     },
     color: {
       type: String,
       default: "green"
+    },
+    backColor:{
+      type: String,
+      default: '#fafafa'
     }
   },
   computed: {
@@ -54,15 +69,19 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .svg-clock {
-  position relative
-
-  .value {
+  position absolute
+  z-index 1
+  top -85%
+  left 50%
+  width 100%
+  height 100%
+  transform translate(-50%, -0%)
+  .value{
     position absolute
-    top 50%
+    top 115%
     left 50%
-    transform translate(-55%, -55%)
+    transform translate(-50%,0)
   }
-
   circle {
     -webkit-transition stroke-dasharray linear 0.98s
     transition stroke-dasharray linear 0.98s

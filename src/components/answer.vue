@@ -11,8 +11,8 @@
       </div>
     </div>
     <section class="card">
-      <div class="back-clock"></div>
       <div class="clock">
+        <Clock value=0 :max="15" backColor="transparent"></Clock>
         <div class="avatar" :style='"background-image:url("+playerInfo.avatar+")"'></div>
       </div>
       <div class="title">
@@ -145,21 +145,7 @@ export default {
     font-weight 500
     position relative
 
-    .back-clock {
-      position absolute
-      top 1.5em
-      left 50%
-      width 6em
-      height 6em
-      border-radius 50%
-      background #fafafa
-      box-shadow 0 0 20px 1px rgba(0, 0, 0, 0.2), 0 0 10px 1px rgba(0, 0, 0, 0.2)
-      z-index -1
-      transform translate(-50%, -50%) rotate(45deg)
-    }
-
     .clock {
-      background blue
       position absolute
       top 0
       left 50%
@@ -170,18 +156,12 @@ export default {
 
       .avatar{
         background-size cover
-        height 3em
+        margin 0.2em 0 0 0.2em
+        width 2.6em
+        height 2.6em
         border-radius 50%
       }
-
-      &:before {
-        content ''
-        position absolute
-        left -1.5em
-        width 6em
-        height 6em
-        border-radius 50%
-        background #fafafa
+      .svg-clock{
         z-index -1
       }
     }
