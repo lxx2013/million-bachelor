@@ -2,7 +2,7 @@
   <div class="question">
     <div class="top">
       <div class="top-left" :class="{'grey' : question.chance < 1}">
-        <i class="material-icons">favorite</i>
+        <i class="material-icon-love"></i>
         <span>复活卡{{question.chance}}</span>
       </div>
       <div class="top-right">
@@ -16,7 +16,7 @@
       </div>
       <div class="title">
         <div class="title-left">第 {{question.index}} / {{question.total}} 题</div>
-        <div class="title-right">出题人 : 柳哥</div>
+        <div class="title-right">出题人 : {{question.author||"匿名"}}</div>
       </div>
       <div class="content">
         <MarkdownText :value="question.question"/>
@@ -27,7 +27,7 @@
         </Button>
       </div>
     </section>
-    {{question}}
+    <!-- {{question}} -->
     <water-back :percent="water" color="#1787ff" class="water-back"></water-back>
   </div>
 </template>

@@ -15,6 +15,7 @@ declare namespace ServerToUser {
     index: number
     total: number
 
+    author: string
     question: string
     options: string[]
 
@@ -39,6 +40,7 @@ declare namespace ServerToUser {
     index: number
     total: number
 
+    author: string
     question: string
     options: string[]
 
@@ -107,6 +109,7 @@ declare namespace UserToServer {
 declare namespace Server {
   interface Question {
     uid: string,
+    author: string,
     question: string,
     options: string[],
     answer: {

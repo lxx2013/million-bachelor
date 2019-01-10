@@ -160,18 +160,7 @@ function emitNextQuestion() {
 
   players.forEach(player => {
     player.answer = -1
-
-    player.socket.emit('question', /** @type {ServerToUser.Question} */({
-      answerable: player.life > 0,
-      yourAnswer:player.answer,
-      chance: player.life > 0 ? player.life - 1 : 0,
-      index: index + 1,
-      total: questions.length,
-      question: question.question,
-      options: question.options,
-      time: answeringTime,
-      peopleLeft: peopleLeft,
-    }))
+    sendQuestionSceneToPlayer(player)
   })
 }
 
@@ -214,6 +203,32 @@ function statAndEmitAnswer() {
   setStatus(STATUS_ANSWER)
 }
 
+
+/**
+ * 为一个用户发送当前题目的选择界面、他能不能做出选项、复活机会次数之类的信息
+ * @param {Server.Player} player
+ */
+function sendQuestionSceneToPlayer(player) {
+  let question = questions[index]
+  let answerable = (player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil)
+  // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷，那么他还可以答题
+
+  player.socket.emit('question', /** @type {ServerToUser.Question} */({
+    answerable,
+    yourAnswer:player.answer,
+    chance: player.life > 0 ? player.life - 1 : 0,
+
+    index: index + 1,
+    total: questions.length,
+    author: question.author,
+    question: question.question,
+    options: question.options,
+
+    time: Math.max(acceptAnswerUntil - (+new Date), 1000),
+    peopleLeft: peopleLeft,
+  }))
+}
+
 /**
  * 为一个用户发送当前题目的答案、他的选项、复活机会次数之类的信息
  * @param {Server.Player} player
@@ -223,6 +238,7 @@ function sendAnswerSceneToPlayer(player) {
   player.socket.emit('answer', /** @type {ServerToUser.Answer} */({
     index: index + 1,
     total: questions.length,
+    author: question.author,
     question: question.question,
     options: question.options,
     correctAnswer: question.answer.index,
@@ -306,6 +322,7 @@ async function playerLogin(socket) {
       player.answer = incoming.answer
       optionNumbers[incoming.answer]++
 
+      sendQuestionSceneToPlayer(player)
       sendAdminStatus()
     }
   })
@@ -334,23 +351,8 @@ async function playerLogin(socket) {
       socket.emit('wait', {})
       break;
 
-    case STATUS_QUESTION: {
-      let question = questions[index]
-      let answerable = (player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil)
-      // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷，那么他还可以答题
-
-      socket.emit('question', /** @type {ServerToUser.Question} */({
-        answerable,
-        yourAnswer:player.answer,
-        chance: player.life > 0 ? player.life - 1 : 0,
-        index: index + 1,
-        total: questions.length,
-        question: question.question,
-        options: question.options,
-        time: Math.max(acceptAnswerUntil - (+new Date), 1000),
-        peopleLeft: peopleLeft,
-      }))
-    }
+    case STATUS_QUESTION:
+      sendQuestionSceneToPlayer(player)
       break;
 
     case STATUS_ANSWER:

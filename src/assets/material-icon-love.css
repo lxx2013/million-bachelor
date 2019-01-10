@@ -1,0 +1,8 @@
+.material-icon-love {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  background: url('./love.png') no-repeat center center;
+  background-size: 1em;
+  vertical-align: middle;
+}

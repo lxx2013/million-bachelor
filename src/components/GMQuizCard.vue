@@ -31,7 +31,10 @@
           >
         </div>
 
-        <input type="text" class="hint" v-model="quiz.answer.hint" placeholder="（可以设置一个提示）">
+        <v-layout style="color:#333">
+          <input class="flex" type="text" v-model="quiz.answer.hint" placeholder="（可以设置一个提示）">
+          出题人： <input type="text" class="author" v-model="quiz.author" placeholder="匿名">
+        </v-layout>
       </v-card-text>
     </v-card>
   </v-flex>
@@ -71,12 +74,6 @@ export default {
 </script>
 
 <style scoped>
-.hint {
-  display: block;
-  width: 100%;
-  color: #333;
-}
-
 .fullfilltext {
   background: transparent;
   color: #000;
