@@ -215,7 +215,7 @@ function sendQuestionSceneToPlayer(player) {
 
   player.socket.emit('question', /** @type {ServerToUser.Question} */({
     answerable,
-    yourAnswer:player.answer,
+    yourAnswer: player.answer,
     chance: player.life > 0 ? player.life - 1 : 0,
 
     index: index + 1,
@@ -261,9 +261,11 @@ function emitScoreBoard() {
  * @returns {ServerToUser.Score}
  */
 function getScoreInfo() {
+  const getFactor = /** @param {Server.Player} p */ (p) => (p.score + p.life / 1000);
+
   var playerSorted = Array.from(players.values())
     // .filter(p => p.score >= questions.length - 2)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (getFactor(b) - getFactor(a)))
 
   return {
     users: playerSorted.map(player => ({

@@ -129,11 +129,20 @@
           </v-layout>
         </v-card>
       </v-flex>
-    </v-layout>
 
-    <div v-if="!isMobile">
-      <GMGuy v-for="player in players" :key="player.openid" :player="player"/>
-    </div>
+      <v-flex xs12 v-if="!isMobile">
+        <v-card>
+          <v-card-title class="orange lighten-3">
+            <v-icon large left>group</v-icon>
+            <span class="title font-weight-light">场上玩家</span>
+            <v-btn @click="downloadScoreBoard">保存战况</v-btn>
+          </v-card-title>
+          <div>
+            <GMGuy v-for="player in players" :key="player.openid" :player="player"/>
+          </div>
+        </v-card>
+      </v-flex>
+    </v-layout>
   </v-container>
 </template>
 
@@ -143,6 +152,7 @@ import GMGuy from "./GMGuy.vue";
 import MarkdownText from "./MarkdownText.vue";
 
 import socket from "../socket";
+import downloadFile from "../lib/downloadFile";
 
 export default {
   components: { GMGuy, MarkdownText },
@@ -206,6 +216,31 @@ export default {
     e(event, requireConfirm) {
       if (requireConfirm && !confirm("确认要操作？")) return;
       socket.emit(event);
+    },
+    downloadScoreBoard() {
+      let date = new Date()
+      let filename = `scoreboard-${date.getHours()}-${date.getMinutes()}.html`
+      let content = `<html><head>
+      <meta charset="utf-8">
+      <style>
+        img.avatar { height: 64px; width: 64px; }
+      </style>
+      <script>
+        function fuckavatar(){
+          [].forEach.call(document.querySelectorAll('img.avatar'), function(img){ img.parentElement.removeChild(img) })
+          alert("头像去除成功，现在可复制整个页面，然后贴入 Excel 里了");
+        }
+      <\/script>
+      </head><body>
+      <button onclick="fuckavatar()">去掉全部头像</button>
+
+      <table border="1">
+        <tr> <th colspan=2>战况汇报</th>  <td colspan=3>${date.toLocaleString()}</td> </tr>
+        <tr> <th>OpenID</th> <th>头像</th>  <th>名字</th> <th>得分</th> <th>生命数</th> </tr>
+        ${this.players.map(p=>`<tr>  <td>${p.openid}</td>  <td> <img class="avatar" src="${p.avatar}"> </td>   <td>${p.name}</td>  <td>${p.score}</td> <td>${p.life}</td>`).join('\n')}
+      </table>
+      </body></html>`
+      downloadFile(filename, content)
     }
   }
 };

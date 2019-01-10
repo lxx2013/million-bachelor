@@ -30,6 +30,7 @@
 <script>
 import GMQuizCard from "./GMQuizCard.vue";
 import socket from "../socket";
+import downloadFile from "../lib/downloadFile";
 
 export default {
   data() {
@@ -108,17 +109,6 @@ function uploadFile(callback) {
   selectFile.click();
 }
 
-var aLink = document.createElement("a");
-var aLinkLastURL = "";
-document.body.appendChild(aLink);
-
-function downloadFile(fileName, content) {
-  if (aLinkLastURL) URL.revokeObjectURL(aLinkLastURL);
-  var blob = new Blob([content]);
-  aLink.download = fileName;
-  aLink.href = aLinkLastURL = URL.createObjectURL(blob);
-  aLink.click();
-}
 </script>
 
 <style>
