@@ -109,15 +109,14 @@ export default {
         font-size 20px
         background-color rgba(255,110,142,1)
         width 33px
-        height 33px
-        line-height 33px
+        height 32px
+        line-height 32px
         text-align center
         vertical-align center
       }
       span{
         font-size 14px
-        vertical-align top
-        padding 0.3em 0 0 0
+        vertical-align middle
       }
       &.grey{
         background-color rgba(0,0,0,0.5)
