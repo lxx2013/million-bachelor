@@ -13,7 +13,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '柳哥',
     answer: {
       index: 3,
@@ -31,7 +31,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '李四',
     answer: {
       index: 3,
@@ -49,7 +49,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '麻子',
     answer: {
       index: 3,
@@ -67,7 +67,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '史塔克',
     answer: {
       index: 3,
@@ -85,7 +85,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '小明',
     answer: {
       index: 3,
@@ -103,7 +103,7 @@ module.exports = [
   },
   {
     question: '$e^{lnx}$ 对 x 求导的结果是多少?',
-    options: ['x', '$e^x$', '$1/x$', '1'],
+    options: ['x', 'x', 'x', '1'],
     author: '上村高树',
     answer: {
       index: 3,

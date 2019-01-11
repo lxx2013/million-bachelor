@@ -16,7 +16,6 @@
       </div>
       <div class="title">
         <div class="title-left">第 {{question.index}} / {{question.total}} 题</div>
-        <div class="title-right">出题人 : {{question.author||"匿名"}}</div>
       </div>
       <div class="content">
         <MarkdownText :value="question.question"/>
@@ -67,11 +66,11 @@ export default {
   mounted() {
     this.leftTime = this.question.time/1000
     this.timer[0] = setInterval(()=>{
-      this.leftTime = this.leftTime - 1
-      if(this.leftTime <=0 ){
+      this.leftTime = this.leftTime - 0.5
+      if(this.leftTime <= 0.49 ){
         clearInterval(this.timer[0])
       }
-    },1000)
+    },500)
     this.water = (15000 - this.question.time) /150
     this.timer[1] = setInterval(() => {
           this.water += 102 / ((1000 / 33) * 15);
