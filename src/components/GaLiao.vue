@@ -4,8 +4,8 @@
       <div class="emptyNotice">等待主持人发题时，可以在这里尬聊一波...</div>
       <div class="msgItem" v-for="msg in msgs" :key="msg.key">
         <img :src="msg.avatar" class="avatar">
-        <div class="nickname">{{ msg.nickname }}</div>
-        <div class="text">{{ msg.text }}</div>
+        <!-- <div class="nickname">{{ msg.nickname }}</div> -->
+        <div class="text" @click="text=msg.text">{{ msg.text }}</div>
       </div>
     </div>
     <div class="sendBox">
@@ -16,7 +16,7 @@
         @keypress.enter="send"
         :placeholder="placeholder"
       >
-      <button @click="send">发言</button>
+      <button class="sendBtn" @click="send">发言</button>
     </div>
   </div>
 </template>
@@ -92,17 +92,18 @@ export default {
   flex-direction: column;
 
   .msgs {
-    background-color: lighten(#1787ff, 30);
-    background: linear-gradient(to bottom, lighten(#1787ff, 30), lighten(#1787ff, 20));
+    background-color: #fafafa;
+    background: linear-gradient(to bottom, #fafafa, #F6F6F6) no-repeat 0 bottom;
+    background-size: 100% 60px;
     flex-grow: 1;
-    overflow: auto;
+    overflow-y: scroll;
     flex-direction: column;
     display: flex;
-    padding-bottom: 10px;
   }
 
   .sendBox {
-    background: #1787ff;
+    border-top: 1px solid #fafafa;
+    background: #fafafa;
     padding: 5px;
     box-sizing: border-box;
     height: 48px;
@@ -112,10 +113,19 @@ export default {
 
     input {
       flex-grow: 1;
+      border: 0;
+      font-size: inherit;
+      padding: 5px;
+      min-height: 1em;
     }
 
-    input, button {
-      padding: 5px 10px;
+    .sendBtn {
+      background: #1787FF;
+      color: #ffffff;
+      border-radius: 5px;
+      border: 0;
+      padding: 5px 20px;
+      cursor: pointer;
     }
   }
 }
@@ -131,24 +141,44 @@ export default {
 .msgItem {
   text-align: left;
   padding: 10px;
-  padding-left: 52px;
-  padding-bottom: 0;
+  padding-left: 68px;
   position: relative;
-  min-height: 52px;
 
   img.avatar {
     position: absolute;
     left: 10px;
     top: 10px;
-    height: 32px;
-    width: 32px;
-    border-radius: 100%;
+    height: 38px;
+    width: 38px;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px #EEE;
   }
 
   .text {
-    padding: 5px;
-    background: lighten(#1787ff, 40);
+    padding: 10px;
+    background: #FFF;
     border-radius: 5px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 1px 5px #EEE;
+    cursor: pointer;
+
+    &:before {
+      content: ' ';
+      width: 0;
+      height: 0;
+      border: 8px solid transparent;
+      border-right-color: #FFF;
+      position: absolute;
+      right: 100%;
+      top: 10px;
+    }
+
+    &:hover, &:active {
+      color: #1787FF;
+    }
   }
 
   .nickname {
