@@ -147,6 +147,11 @@ declare namespace ServerToAdmin {
   /** "getQuiz" 返回管理员当前的题库 */
   type GetQuiz = Server.Question[]
 
+  /** "notice" 提示一段文字 */
+  interface Notice {
+    text: string
+  }
+
   /** "status" 返回当前游戏进展的情况 */
   interface Status {
     status: number
@@ -183,6 +188,13 @@ declare namespace AdminToServer {
   /** "nextQuestion" 进入下一问题 */
   /** "showAnswer" 发问题答案 */
   /** "showScore" 显示得分榜 */
+
+  /** "sendCode" 发送口令红包给一些用户 */
+  type SendCode = {
+    openIds: string[],
+    text: string,
+    passcode: string
+  }
 }
 
 declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>

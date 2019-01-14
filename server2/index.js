@@ -68,6 +68,7 @@ function adminLogin(socket) {
   socket.on("showWait", emitWait)
   socket.on("showAnswer", statAndEmitAnswer)
   socket.on("showScore", emitScoreBoard)
+  socket.on("sendCode", sendCodeForWinner)
 
   sendAdminStatus()
 }
@@ -255,6 +256,20 @@ function emitScoreBoard() {
   var payload = getScoreInfo()
   setStatus(STATUS_SCORE)
   io.to('player').emit('score', payload)
+}
+
+/**
+ * @param {AdminToServer.SendCode} opt
+ */
+async function sendCodeForWinner(opt) {
+  const template = '0K7VV5kZYqhEX7Q1zwvSyPqe5U2J0jARDDe83kW41_U'
+  let url = "https://www.baidu.com/s?q=" + encodeURIComponent(opt.passcode)
+  io.to('admin').emit('notice', { text: "正在发送口令..." })
+  await Promise.all(opt.openIds.map(openid => WechatBridge.sendTemplateMessage(openid, template, url, {
+    text: opt.text,
+    extra: "获取口令"
+  })))
+  io.to('admin').emit('notice', { text: "口令发送完成！" })
 }
 
 /**

@@ -10,6 +10,22 @@ const appSecret = "2facca9696b23da9d79dda2aca8ef663"
 
 const mbidStorage = new MBIDStorage()
 
+const getAccessToken = (function () {
+  var lastToken = ""
+  var expiresAt = 0
+
+  return async function () {
+    let now = +new Date
+    if (now < expiresAt) return lastToken
+
+    let resp = await axios(`https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${appSecret}`).then(x => x.data)
+    lastToken = resp.access_token
+    expiresAt = resp.expires_in * 1000 + now
+
+    return lastToken
+  }
+})()
+
 /**
  * @typedef WechatInfo
  * @property {string} avatar
@@ -66,4 +82,29 @@ exports.getWechatAccount = async function (socket) {
 exports.getAuthRedirectURL = async function (socket) {
   const state = socket.handshake.query.rhost + "?&wechatCode="
   return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxbfeab713561ea29c&redirect_uri=http%3A%2F%2Ft.k-on.live%2FwechatLogin&response_type=code&scope=snsapi_userinfo&state=${encodeURIComponent(state)}#wechat_redirect`
+}
+
+/**
+ * @param {string} touser
+ * @param {string} template_id
+ * @param {string} url
+ * @param {Record<string,string|{value:string,color:string}>} data
+ */
+exports.sendTemplateMessage = async function (touser, template_id, url, data) {
+  let access_token = await getAccessToken()
+
+  let newData = {}
+  for (let key in data) {
+    let value = data[key]
+    if (typeof value === 'string') newData[key] = { value, color: "#173177" }
+    else newData[key] = value
+  }
+
+  await axios.post(`https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${access_token}`, {
+    touser,
+    template_id,
+    url,
+    topcolor: "#FF0000",
+    data: newData,
+  })
 }
