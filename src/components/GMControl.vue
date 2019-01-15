@@ -218,8 +218,9 @@ export default {
       socket.emit(event);
     },
     downloadScoreBoard() {
-      let date = new Date()
-      let filename = `scoreboard-${date.getHours()}-${date.getMinutes()}.html`
+      let date = new Date();
+      let filename = `scoreboard-${date.getHours()}-${date.getMinutes()}.html`;
+      let alivePlayers = this.players.filter(player => player.life > 0);
       let content = `<html><head>
       <meta charset="utf-8">
       <style>
@@ -230,17 +231,39 @@ export default {
           [].forEach.call(document.querySelectorAll('img.avatar'), function(img){ img.parentElement.removeChild(img) })
           alert("头像去除成功，现在可复制整个页面，然后贴入 Excel 里了");
         }
+        function onlyAliveGuys(){
+          var ta = document.getElementById('aliveGuys')
+          ta.style.display=''
+          ta.textContent=${JSON.stringify(
+            alivePlayers.map(x => x.openid).join("\n")
+          )}
+        }
       <\/script>
       </head><body>
       <button onclick="fuckavatar()">去掉全部头像</button>
+      <button onclick="onlyAliveGuys()">
+        只查看活着的 ${alivePlayers.length} 人的ID
+      </button>
+
+      <textarea id="aliveGuys" style="display:none"></textarea>
 
       <table border="1">
         <tr> <th colspan=2>战况汇报</th>  <td colspan=3>${date.toLocaleString()}</td> </tr>
         <tr> <th>OpenID</th> <th>头像</th>  <th>名字</th> <th>得分</th> <th>生命数</th> </tr>
-        ${this.players.map(p=>`<tr>  <td>${p.openid}</td>  <td> <img class="avatar" src="${p.avatar}"> </td>   <td>${p.name}</td>  <td>${p.score}</td> <td>${p.life}</td>`).join('\n')}
+        ${this.players
+          .map(
+            p => `<tr>
+                <td>${p.openid}</td>
+                <td><img class="avatar" src="${p.avatar}"></td>
+                <td>${p.name}</td>
+                <td>${p.score}</td>
+                <td>${p.life}</td>
+              </tr>`
+          )
+          .join("\n")}
       </table>
-      </body></html>`
-      downloadFile(filename, content)
+      </body></html>`;
+      downloadFile(filename, content);
     }
   }
 };

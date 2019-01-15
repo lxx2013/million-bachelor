@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1,ie=edge">
+  <title>Winner Winner Chicken Dinner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <img src="./title.png" style="max-width:100%;margin:40px 0">
+
+  <div class="cardPosition">
+    <img src="./star.png" alt="" id="star">
+    <div class="card">
+      <p id="winnerName"></p>
+      <p>恭喜你过关斩将，成功冲顶！</p>
+      <p>请使用支付宝领取口令红包：</p>
+      <p><input readonly type="text" id="code"></p>
+      <p><button onclick="copy1()">点击复制</button></p>
+    </div>
+  </div>
+
+  <script>
+    var code = document.getElementById('code')
+
+    code.value = decodeURIComponent(/[?&]q=([^&]+)/.exec(location.search)[1])
+    document.getElementById('winnerName').textContent = decodeURIComponent(/[?&]u=([^&]+)/.exec(location.search)[1])
+
+    function copy1() {
+      code.focus()
+      code.select()
+      document.execCommand('copy')
+      alert('已复制')
+    }
+  </script>
+</body>
+
+</html>

@@ -1,13 +1,17 @@
 /// @ts-check
 /// <reference path="../types.d.ts" />
 
-var app = require('express')();
+const Express = require('express')
+const Path = require('path')
+
+var app = Express();
 var http = new (require('http').Server)(app);
 var io = require('socket.io')(http);
 var debounce = require('lodash.debounce');
 var WechatBridge = require('./wechatBridge');
 var GaLiaoManager = require('./gaLiao');
 
+const WSHostPrefix = "https://k-on.live"
 const AUTO_ENTER_WAIT = false
 
 const STATUS_IDLE = 0
@@ -263,12 +267,20 @@ function emitScoreBoard() {
  */
 async function sendCodeForWinner(opt) {
   const template = '0K7VV5kZYqhEX7Q1zwvSyPqe5U2J0jARDDe83kW41_U'
-  let url = "https://www.baidu.com/s?q=" + encodeURIComponent(opt.passcode)
+  const { openIds, passcode } = opt
+  const baseURL = WSHostPrefix + "/winner/?q=" + encodeURIComponent(passcode)
+
   io.to('admin').emit('notice', { text: "正在发送口令..." })
-  await Promise.all(opt.openIds.map(openid => WechatBridge.sendTemplateMessage(openid, template, url, {
-    text: opt.text,
-    extra: "获取口令"
-  })))
+  await Promise.all(openIds.map(async openid => {
+    let player = players.get(openid)
+    if (!player) return
+
+    let url = baseURL + '&u=' + encodeURIComponent(player.name)
+    await WechatBridge.sendTemplateMessage(openid, template, url, {
+      text: opt.text,
+      extra: "获取口令"
+    })
+  }))
   io.to('admin').emit('notice', { text: "口令发送完成！" })
 }
 
@@ -392,7 +404,8 @@ io.on('connection', function (socket) {
   }
 })
 
-app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
+app.use('/winner', Express.static(Path.resolve(__dirname, 'winner')))
+app.use(Express.static(Path.resolve(__dirname, '../dist/')))
 http.listen(8801, function () {
   console.log('listening on *:8801');
 });
