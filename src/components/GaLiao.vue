@@ -17,7 +17,7 @@
         :placeholder="placeholder"
         @dblclick="send('666')"
       >
-      <button class="sendBtn" @click="send()">发言</button>
+      <button class="sendBtn" @click="send">发言</button>
     </div>
   </div>
 </template>
@@ -72,7 +72,7 @@ export default {
     },
     send(text) {
       this.placeholder = getPlaceholder();
-      text = text || this.text.trim();
+      text = typeof text === "string" ? text : this.text.trim();
       if (!text) return;
 
       socket.emit("chat", {
