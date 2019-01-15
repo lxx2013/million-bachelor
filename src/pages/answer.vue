@@ -31,11 +31,11 @@
   </div>
 </template>
 <script>
-import Button from "./button.vue"
-import Clock from "./clock.vue";
-import WaterBack from "./WaterBack.vue"
+import Button from "../components/button.vue"
+import Clock from "../components/clock.vue";
+import WaterBack from "../components/WaterBack.vue"
 import socket from '../socket'
-import MarkdownText from "./MarkdownText.vue";
+import MarkdownText from "../components/MarkdownText.vue";
 
 export default {
   name: 'answer',

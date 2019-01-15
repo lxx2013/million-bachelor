@@ -31,11 +31,11 @@
   </div>
 </template>
 <script>
-import Clock from "./clock.vue"
-import Button from "./button.vue"
-import WaterBack from "./WaterBack.vue"
+import Clock from "../components/clock.vue"
+import Button from "../components/button.vue"
+import WaterBack from "../components/WaterBack.vue"
 import socket from '../socket'
-import MarkdownText from "./MarkdownText.vue"
+import MarkdownText from "../components/MarkdownText.vue"
 
 export default {
   name: 'question',
@@ -66,11 +66,11 @@ export default {
   mounted() {
     this.leftTime = this.question.time/1000
     this.timer[0] = setInterval(()=>{
-      this.leftTime = this.leftTime - 0.5
-      if(this.leftTime <= 0.49 ){
+      this.leftTime = Math.max(this.leftTime - 1, 0.01)
+      if(this.leftTime <= 0.1 ){
         clearInterval(this.timer[0])
       }
-    },500)
+    },1000)
     this.water = (15000 - this.question.time) /150
     this.timer[1] = setInterval(() => {
           this.water += 102 / ((1000 / 33) * 15);

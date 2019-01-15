@@ -9,11 +9,11 @@
 </template>
 
 <script>
-import Connect from "./components/connect"
-import Question from "./components/question"
-import Answer from "./components/answer"
-import Score from "./components/score"
-import GaLiao from "./components/GaLiao"
+import Connect from "./pages/connect"
+import Question from "./pages/question"
+import Answer from "./pages/answer"
+import Score from "./pages/score"
+import GaLiao from "./pages/GaLiao"
 import socket from "./socket"
 
 export default {
@@ -23,7 +23,7 @@ export default {
     Question,
     Answer,
     Score,
-    GaLiao
+    GaLiao,
   },
   data() {
     return {

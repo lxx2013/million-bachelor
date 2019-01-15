@@ -1,201 +1,398 @@
+/// @ts-check
+/// <reference path="../types.d.ts" />
+
 var app = require('express')();
-var http = require('http').Server(app);
+var http = new (require('http').Server)(app);
 var io = require('socket.io')(http);
-import initialQuiz from './data'
-import { latexToDOM } from './util'
+var debounce = require('lodash.debounce');
+var WechatBridge = require('./wechatBridge');
+var GaLiaoManager = require('./gaLiao');
 
-var data = initialQuiz
+const AUTO_ENTER_WAIT = false
 
-app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
+const STATUS_IDLE = 0
+const STATUS_QUESTION = 1
+const STATUS_ANSWER = 2
+const STATUS_SCORE = 3
+var status = STATUS_IDLE
+
+/** 当前题号 */
+var index = -1
+
+/** 当前题目是否已经统计答案 -- 避免管理员重复发送 "answer" 出错 */
+var currentQuestionStated = true
 
 /**
- * 同时在线的人员数据
- * @type {{ id: string, name: string, choice: number[], date: string,chances:number }[]}
+ * 本题复活的人（在发送答案的时候更新）
+ * @type {Set<Server.Player>}
  */
-var onlines = []
+let resurrection = new Set()
 
 /**
- * 同时在线的admin
- * @type {{id:string, name: string}[]}
+ * 当前题目各个选项的人数（在用户做出选项时实时更新）
+ *  @type {Array<number>}
  */
-var admins = []
+let optionNumbers = [0, 0, 0, 0]
 
-var Index = 0     //即将发送的题目编号
-var Total = 12    //总题目数量,达到这个数则停止. 而 data 中的题目数量会超过 Total. 将来要从 data 中随机抽取题目
-var NowQuiz = {}  //当前的题目.考虑到有些人网速慢,延迟加载,或者可能断线重连, 要给他们同步当前题目
+/** 这一项仅用于为断线重连的用户计算时间。是否可以答题，参考 status 变量 */
+var acceptAnswerUntil = 0
+const answeringTime = 15000
+const answeringAcceptableDelay = 3000
+
+/** 还活着多少人 */
+var peopleLeft = 0
+
+/** @type {Server.Question[]} */
+var questions = require('./defaultQuestions');
+
+/** @type {Map<string, Server.Player>} 从 openid 到玩家的映射 */
+var players = new Map()
+
+var galiao = new GaLiaoManager(io)
+
 /**
- * 事件部分,共有6种客户端到server 的事件
- * 1. user 或 admin 链接
- * 2. user 或 admin 断开连接
- * 3. user 选择一个选项
- * 4. admin next   发送下一题
- * 5. admin answer 发送答案(其实是发送答对的人数统计)
- * 6. admin wait   发送等待信号
- * 7. admin score  发送最终统计分数板
- * 8. admin reset  重置整个系统 (目前只写了一轮答题,还未写4轮*12的版本)
+ * 处理一个新的管理员连接
+ * @param {SocketIO.Socket} socket
  */
+function adminLogin(socket) {
+  /** @type {Server.Admin} */  var admin = { socket }
+  socket.join('admin')
+  socket.join(galiao.roomName)
+  socket.emit('chat', { messages: galiao.historyMsgs })
+
+  socket.on("getStatus", sendAdminStatus)
+  socket.on("getQuiz", () => { socket.emit("getQuiz", questions) })
+  socket.on("useQuiz", newQuestions => { questions = newQuestions; startGame() })
+  socket.on("reset", startGame)
+  socket.on("nextQuestion", emitNextQuestion)
+  socket.on("showWait", emitWait)
+  socket.on("showAnswer", statAndEmitAnswer)
+  socket.on("showScore", emitScoreBoard)
+  socket.on("sendCode", sendCodeForWinner)
+
+  sendAdminStatus()
+}
+
+var __statusTimeout = null
+
+/**
+ * 设置状态 -- 如果是 STATUS_ANSWER 或者 STATUS_QUESTION，在一小段时间后会自动切回 STATUS_IDLE
+ * @param {number} newStatus
+ */
+function setStatus(newStatus) {
+  if (__statusTimeout) {
+    clearTimeout(__statusTimeout)
+    __statusTimeout = null
+  }
+
+  status = newStatus
+
+  if (status === STATUS_IDLE) {
+    io.to('player').emit('wait', {})
+  }
+
+  if (AUTO_ENTER_WAIT && status === STATUS_QUESTION) {
+    __statusTimeout = setTimeout(() => {
+      __statusTimeout = 0
+      setStatus(STATUS_IDLE)
+    }, answeringAcceptableDelay + answeringTime)
+  }
+
+  if (AUTO_ENTER_WAIT && status === STATUS_ANSWER) {
+    __statusTimeout = setTimeout(() => {
+      __statusTimeout = 0
+      emitWait()
+    }, 5000)
+  }
+
+  sendAdminStatus()
+}
+
+const sendAdminStatus = debounce(function () {
+  /** @type {ServerToAdmin.Status['players']} */
+  var playersTmp = Array.from(players.values()).map(p => ({
+    ...p, socket: null,
+    connected: p.socket.connected,
+  })).sort((a, b) => b.score - a.score)
+
+  /** @type {ServerToAdmin.Status} */
+  var payload = {
+    status, peopleLeft, index: index + 1, total: questions.length,
+    question: questions[index] || null,
+    resurrectionNumber: resurrection.size,
+    players: playersTmp,
+    optionNumbers,
+    currentQuestionStated,
+  }
+
+  io.to('admin').emit('status', payload)
+}, 200)
+
+/** 开始一局新的游戏 */
+function startGame() {
+  var kickOutPlayerIDs = new Set()
+
+  players.forEach(player => {
+    player.life = 3
+    player.score = 0
+    if (!player.socket.connected) kickOutPlayerIDs.add(player.openid)
+  })
+
+  // 踢掉断开了连接的玩家
+  kickOutPlayerIDs.forEach(id => players.delete(id))
+
+  setStatus(STATUS_IDLE)
+  peopleLeft = players.size
+  index = -1
+  currentQuestionStated = true
+  io.to("player").emit("wait", {})
+}
+
+/** 给玩家发布下一题 */
+function emitNextQuestion() {
+  if (index >= questions.length - 1) return false
+  let question = questions[++index]
+
+  resurrection.clear()
+  optionNumbers = new Array(question.options.length).fill(0)
+  acceptAnswerUntil = +new Date() + answeringTime
+  currentQuestionStated = false
+  setStatus(STATUS_QUESTION)
+
+  players.forEach(player => {
+    player.answer = -1
+    sendQuestionSceneToPlayer(player)
+  })
+}
+
+/** 给玩家发送等待屏 */
+function emitWait() {
+  setStatus(STATUS_IDLE)
+}
+
+/** 给玩家发布答案，并统计得分、复活之类的事情 */
+function statAndEmitAnswer() {
+  // 如果没统计的话
+  if (!currentQuestionStated) {
+    const question = questions[index]
+    if (!question) return
+
+    currentQuestionStated = true
+    resurrection.clear()
+
+    // 更新统计
+    players.forEach(player => {
+      if (player.answer !== question.answer.index) {
+        if (player.life > 1) {
+          // 能复活
+          player.life--
+          resurrection.add(player)
+        } else if (player.life == 1) {
+          // 最后一条命，死了
+          player.life = 0
+          peopleLeft--
+        }
+      } else {
+        // 答对了
+        player.score++
+      }
+    })
+  }
+
+  // 为每一个人发送当前题目的答案
+  players.forEach(sendAnswerSceneToPlayer)
+  setStatus(STATUS_ANSWER)
+}
+
+
+/**
+ * 为一个用户发送当前题目的选择界面、他能不能做出选项、复活机会次数之类的信息
+ * @param {Server.Player} player
+ */
+function sendQuestionSceneToPlayer(player) {
+  let question = questions[index]
+  let answerable = (player.answer == -1 && player.life > 0 && (+new Date) <= acceptAnswerUntil)
+  // 如果用户在答题过程中中途断了重连，而且他还没选择答案，而且他还没死，而且还没收卷，那么他还可以答题
+
+  player.socket.emit('question', /** @type {ServerToUser.Question} */({
+    answerable,
+    yourAnswer: player.answer,
+    chance: player.life > 0 ? player.life - 1 : 0,
+
+    index: index + 1,
+    total: questions.length,
+    author: question.author,
+    question: question.question,
+    options: question.options,
+
+    time: Math.max(acceptAnswerUntil - (+new Date), 1000),
+    peopleLeft: peopleLeft,
+  }))
+}
+
+/**
+ * 为一个用户发送当前题目的答案、他的选项、复活机会次数之类的信息
+ * @param {Server.Player} player
+ */
+function sendAnswerSceneToPlayer(player) {
+  let question = questions[index];
+  player.socket.emit('answer', /** @type {ServerToUser.Answer} */({
+    index: index + 1,
+    total: questions.length,
+    author: question.author,
+    question: question.question,
+    options: question.options,
+    correctAnswer: question.answer.index,
+    yourChance: Math.max(0, player.life - 1),
+    yourAnswer: player.answer,
+    optionNumbers,
+    resurrectionNumber: resurrection.size,
+    peopleLeft,
+  }));
+}
+
+/** 给玩家发送得分榜 */
+function emitScoreBoard() {
+  var payload = getScoreInfo()
+  setStatus(STATUS_SCORE)
+  io.to('player').emit('score', payload)
+}
+
+/**
+ * @param {AdminToServer.SendCode} opt
+ */
+async function sendCodeForWinner(opt) {
+  const template = '0K7VV5kZYqhEX7Q1zwvSyPqe5U2J0jARDDe83kW41_U'
+  let url = "https://www.baidu.com/s?q=" + encodeURIComponent(opt.passcode)
+  io.to('admin').emit('notice', { text: "正在发送口令..." })
+  await Promise.all(opt.openIds.map(openid => WechatBridge.sendTemplateMessage(openid, template, url, {
+    text: opt.text,
+    extra: "获取口令"
+  })))
+  io.to('admin').emit('notice', { text: "口令发送完成！" })
+}
+
+/**
+ * @returns {ServerToUser.Score}
+ */
+function getScoreInfo() {
+  const getFactor = /** @param {Server.Player} p */ (p) => (p.score + p.life / 1000);
+
+  var playerSorted = Array.from(players.values())
+    // .filter(p => p.score >= questions.length - 2)
+    .sort((a, b) => (getFactor(b) - getFactor(a)))
+
+  return {
+    users: playerSorted.map(player => ({
+      id: player.openid,
+      avatar: player.avatar,
+      name: player.name,
+      score: player.score,
+    }))
+  }
+}
+
+/**
+ * 处理一个新的玩家连接
+ * @param {SocketIO.Socket} socket
+ */
+async function playerLogin(socket) {
+  let wechatAccount = await WechatBridge.getWechatAccount(socket)
+
+  // 如果用户还没授权微信登录
+  if (!wechatAccount) {
+    console.log("Player not login -- " + socket.id)
+    let redirect = await WechatBridge.getAuthRedirectURL(socket)
+    socket.emit('connectInfo', { id: "", name: "", avatar: "", redirect })
+    return
+  }
+
+  var player = players.get(wechatAccount.openid)
+
+  if (!player) {
+    console.log(`New player -- ${wechatAccount.name} -- ${socket.id}`)
+    player = {
+      ...wechatAccount,
+      life: 0, // 开局时重置
+      score: 0,
+      answer: -1,
+      socket,
+    }
+    players.set(wechatAccount.openid, player)
+  } else {
+    console.log(`Player reconnect -- ${wechatAccount.name} -- ${socket.id}`)
+    player.socket.disconnect(true)
+    player.socket = socket
+  }
+
+  socket.join('player')
+  socket.join(galiao.roomName)
+  socket.on('disconnect', () => { sendAdminStatus() })
+  sendAdminStatus()
+
+  socket.on('answer',  /** @param {UserToServer.Answer} incoming */(incoming) => {
+    if (status !== STATUS_QUESTION) return // 现在不接受回答
+    if (player.life <= 0) return // 没生命了
+    if (player.answer !== -1) return // 已经作答
+
+    if (incoming.answer >= 0 && incoming.answer < questions[index].options.length) {
+      player.answer = incoming.answer
+      optionNumbers[incoming.answer]++
+
+      sendQuestionSceneToPlayer(player)
+      sendAdminStatus()
+    }
+  })
+
+  socket.on('chat', /** @param {UserToServer.Chat} msg */(msg) => {
+    galiao.send({
+      avatar: player.avatar,
+      nickname: player.name,
+      time: +new Date(),
+      text: msg.text,
+    })
+  })
+
+  socket.emit('chat', { messages: galiao.historyMsgs })
+
+  socket.emit('connectInfo', /** @type {ServerToUser.ConnectInfo} */({
+    id: player.openid,
+    avatar: player.avatar,
+    name: player.name,
+    redirect: "",
+  }))
+
+  // 恢复现场
+  switch (status) {
+    case STATUS_IDLE:
+      socket.emit('wait', {})
+      break;
+
+    case STATUS_QUESTION:
+      sendQuestionSceneToPlayer(player)
+      break;
+
+    case STATUS_ANSWER:
+      sendAnswerSceneToPlayer(player)
+      break;
+
+    case STATUS_SCORE:
+      socket.emit('score', getScoreInfo())
+      break;
+  }
+}
 
 io.on('connection', function (socket) {
-  var USER = { id: socket.id, date: (new Date()).toLocaleString(), choice: [], chances:2} // 本次链接的 USER
-  /**
-   * 一名用户或 admin 链接
-   */
-  socket.once('client connected', name => {
-    console.log(name, ' connected ')
-    USER.name = name
-    onlines.push(USER)
-    if(Object.keys(NowQuiz).length == 0)
-      socket.emit('server wait')
-    else if(onlines.filter(x=>x.id==USER.id)[0].chances > 0)
-      socket.emit('server patchQuestion', NowQuiz)
-  })
-  socket.once('admin connected', name => {
-    console.log(`admin ${name} connected`)
-    USER.name = name
-    admins.push(USER)
-    patchOnlines()
-    patchQuizAdmin()
-  })
-  /**
-   * USER 或 admin 断开连接
-   */
-  socket.on('disconnect', () => {
-    console.log(`${USER.name} disconnected `)
-    if (onlines.indexOf(USER) !== -1) {
-      onlines.splice(onlines.indexOf(USER), 1)
-    } else if (admins.indexOf(USER) !== -1) {
-      admins.splice(admins.indexOf(USER), 1)
-    }
-  })
-  /**
-   * 用户选择了一个选项
-   */
-  socket.on('client choosed', o => {
-    console.log(USER, o.quizIndex, o.choiceIndex)
-    USER.choice[o.quizIndex] = o.choiceIndex
-  })
-  /**
-   * 管理员查询题目
-   */
-  socket.on('admin getQuiz',patchQuizAdmin)
-  /**
-   * 管理员修改题目
-   */
-  socket.on('admin setQuiz', newData=>{
-    data=newData
-    Index=0
-    patchQuizAdmin()
-  })
-  /**
-   * 管理员选择发送下一题
-   */
-  socket.on('admin next', () => {
-    if (Index == Total) {
-      return
-    }
-    let singleQuestion = data[Index]
-    singleQuestion.Total = Total
-    singleQuestion.Index = Index++
-    singleQuestion.question = latexToDOM(singleQuestion.question)
-    singleQuestion.options = singleQuestion.options.map(x => latexToDOM(x))
-    console.log(`singleQuestion : ${singleQuestion}`)
-    if (singleQuestion) {
-      patchQuestion(singleQuestion)
-      NowQuiz = singleQuestion
-    }
-  })
-  /**
-   * 管理员选择展示 answer(要展示的是人员选项的分布) , wait
-   */
-  socket.on('admin answer',()=>{
-    pathchAnswer()
-  })
-  socket.on('admin wait', () => {
-    io.emit('server wait')
-  })
-  /**
-   * 管理员选择 reset
-   */
-  socket.on('admin reset', () => {
-    Index = 0
-    io.emit('server wait')
-  })
-});
-
-/**
- * 函数部分, 共有4种 server 到 client 的处理函数
- * 1.向全员广播一个题目, 附带总题目数量
- * 2.向全员广播上题答案
- * 3.向所有管理员发送 onlines 信息
- * 4.向所有管理员发送 用户们选择的选项信息
- */
-
-/**
- * 向全员广播一个题目
- * question.limitSeconds 控制一道题允许的时间, 单位:s 如果为空, 前端会默认15s
- */
-function patchQuestion(question) {
-  if (onlines.length) {
-    onlines.forEach(x => {
-      let socket = io.sockets.connected[x.id]
-      if (socket) {
-        socket.emit('server patchQuestion', question)
-      }
-      else {
-        console.log('patchQuestion Error onlines:', onlines)
-        console.log(x.id)
-      }
-    })
+  var ref = socket.handshake.query.ref + ""
+  console.log("Connection. Ref = " + ref)
+  if (/^\/admin/.test(ref)) {
+    adminLogin(socket)
+  } else {
+    playerLogin(socket)
   }
-}
-/**
- * 向全员广播上题答案
- */
-function pathchAnswer() {
-  var count = [0,0,0,0],dies = []
-  onlines.forEach(x=>{
-    let choice = x.choice[NowQuiz.Index] //可能为 null(无提交或超时), 0, 1, 2, 3这几个值
-    if(choice >=0){
-      count[choice] ++
-    }
-    if(x.chances > 0  && choice != NowQuiz.answer.index){
-      x.chances--
-      dies.push(x)
-    }
-  })
-  console.log('patchAnswer ',count)
-  io.emit('server patchAnswer', { count , dies})
-}
-/**
- * 向所有管理员发送最新的题库
- */
-function patchQuizAdmin(){
-  admins.forEach(x => {
-    let socket = io.sockets.connected[x.id]
-    if (socket) {
-      socket.emit('server allQuiz', data)
-    }
-  })
-}
-/**
- * 向所有管理员发送 onlines 信息
- */
-setInterval(patchOnlines, 1000)
+})
 
-function patchOnlines() {
-  if (admins.length) {
-    admins.forEach(x => {
-      let socket = io.sockets.connected[x.id]
-      if (socket) {
-        socket.emit('server onlines', onlines)
-      }
-      else {
-        console.log('admins not found,admins:', admins)
-        console.log(x.id)
-      }
-    })
-  }
-}
+app.use(require('express').static(require('path').resolve(__dirname, '../dist/')))
 http.listen(8801, function () {
   console.log('listening on *:8801');
 });
