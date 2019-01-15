@@ -5,7 +5,7 @@
       <div class="msgItem" v-for="msg in msgs" :key="msg.key">
         <img :src="msg.avatar" class="avatar">
         <!-- <div class="nickname">{{ msg.nickname }}</div> -->
-        <div class="text" @click="text=msg.text">{{ msg.text }}</div>
+        <div class="text" @click="text=msg.text" @dblclick="send(msg.text)">{{ msg.text }}</div>
       </div>
     </div>
     <div class="sendBox">
@@ -15,8 +15,9 @@
         v-model="text"
         @keypress.enter="send"
         :placeholder="placeholder"
+        @dblclick="send('666')"
       >
-      <button class="sendBtn" @click="send">发言</button>
+      <button class="sendBtn" @click="send()">发言</button>
     </div>
   </div>
 </template>
@@ -32,12 +33,17 @@ const NOUN1 = "南一楼,南六楼,他,你,上一题,台上,节目,零食,气球
 const NOUN2 = "好不好玩,帅不帅,美不美,动听不动听,的难度,的姿势,的日常,的表现,的颜色,的吉他".split(
   ","
 );
+const HINT2 = `双击别人说的话，可以复读
+人类的本质，在于双击别人的话
+老铁双击666啊
+春节快乐，给您拜个早年啦`.split("\n");
 
 function randPick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 function getPlaceholder() {
+  if (Math.random() > 0.6) return randPick(HINT2);
   return `等待时，不如聊聊${randPick(NOUN1)}${randPick(NOUN2)}？`;
 }
 
@@ -64,9 +70,9 @@ export default {
       var mbox = this.$refs.msgBox;
       mbox.scrollTop = mbox.scrollHeight;
     },
-    send() {
+    send(text) {
       this.placeholder = getPlaceholder();
-      let text = this.text.trim();
+      text = text || this.text.trim();
       if (!text) return;
 
       socket.emit("chat", {
@@ -74,7 +80,6 @@ export default {
       });
 
       this.text = "";
-      this.$refs.inputBox.focus();
     }
   }
 };
