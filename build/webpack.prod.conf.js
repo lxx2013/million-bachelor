@@ -64,7 +64,22 @@ const webpackConfig = merge(baseWebpackConfig, {
       filename: config.build.index,
       template: 'index.html',
       inject: true,
-      excludeChunks: ['admin'],
+      excludeChunks: ['admin', 'wall'],
+      minify: {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeAttributeQuotes: true
+        // more options:
+        // https://github.com/kangax/html-minifier#options-quick-reference
+      },
+      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+      chunksSortMode: 'dependency'
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'wall.html',
+      template: 'wall.html',
+      inject: true,
+      excludeChunks: ['app', 'admin'],
       minify: {
         removeComments: true,
         collapseWhitespace: true,
@@ -79,7 +94,7 @@ const webpackConfig = merge(baseWebpackConfig, {
       filename: 'admin.html',
       template: 'admin.html',
       inject: true,
-      excludeChunks: ['app'],
+      excludeChunks: ['app', 'wall'],
       minify: {
         removeComments: true,
         collapseWhitespace: true,

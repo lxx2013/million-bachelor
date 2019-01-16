@@ -1,15 +1,16 @@
 <template>
   <div class="galiao">
-    <wechatWall v-if="!isPhone" :messages="msgs.slice(-3)"></wechatWall>
-    <div v-if="isPhone" class="msgs" ref="msgBox">
+    <div class="msgs" ref="msgBox">
       <div class="emptyNotice">等待主持人发题时，可以在这里尬聊一波...</div>
-      <div class="msgItem" v-for="msg in msgs" :key="msg.key">
-        <img :src="msg.avatar" class="avatar">
-        <!-- <div class="nickname">{{ msg.nickname }}</div> -->
-        <div class="text" @click="text=msg.text" @dblclick="send(msg.text)">{{ msg.text }}</div>
-      </div>
+      <transition-group tag="div">
+        <div class="msgItem" v-for="msg in msgs" :key="msg.key">
+          <img :src="msg.avatar" class="avatar">
+          <!-- <div class="nickname">{{ msg.nickname }}</div> -->
+          <div class="text" @click="text=msg.text" @dblclick="send(msg.text)">{{ msg.text }}</div>
+        </div>
+      </transition-group>
     </div>
-    <div v-if="isPhone" class="sendBox">
+    <div class="sendBox">
       <input
         ref="inputBox"
         type="text"
@@ -28,7 +29,6 @@
 
 import Vue from "vue";
 import socket from "../socket";
-import wechatWall from "../components/wechatWall.vue"
 
 const UA = window.navigator.userAgent.toLowerCase()
 
@@ -53,15 +53,12 @@ function getPlaceholder() {
 
 export default {
   name: "GaLiao",
-  components: {
-    wechatWall
-  },
   data() {
     return {
       msgs: [],
       text: "",
       placeholder: getPlaceholder(),
-      isPhone: UA && /(iPhone|iPod|Android|ios)/i.test(UA)
+      stopScrollingAt: 0,
     };
   },
   mounted() {
@@ -74,13 +71,13 @@ export default {
     /** @param {ServerToUser.Chat} msg */
     handleChat(msg) {
       this.msgs = this.msgs.concat(msg.messages).slice(-MAX_HISTORY_COUNT);
-      if (this.isPhone) {
-        Vue.nextTick(() => this.scrollToBottom());
-      }
+      setTimeout(()=>this.scrollToBottom(), 50)
+      this.stopScrollingAt=+new Date+800
     },
     scrollToBottom() {
       var mbox = this.$refs.msgBox;
       mbox.scrollTop = mbox.scrollHeight;
+      if (this.stopScrollingAt > +new Date) setTimeout(()=>this.scrollToBottom(), 50)
     },
     send(text) {
       this.placeholder = getPlaceholder();
@@ -160,15 +157,23 @@ export default {
 
 @keyframes zoomin {
   from {
-    max-height: 0;
-    transform: scale(0.4);
-    overflow: hidden;
+    opacity: 0;
+    transform: translateX(-40px) scale(0.4);
   }
 
   to {
-    max-height: 50vh;
-    overflow: hidden;
+    opacity: 1;
   }
+}
+
+@keyframes flyup {
+  from { transform: translateY(50px); opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes leaveAni {
+  from { opacity: 1; }
+  to { transform: translateY(-20px); opacity: 0; }
 }
 
 .msgItem {
@@ -176,8 +181,27 @@ export default {
   padding: 10px;
   padding-left: 68px;
   position: relative;
-  transform-origin: left center;
-  animation: zoomin 0.5s;
+  flex-shrink: 0;
+
+  &.v-enter {
+    opacity 0
+  }
+
+  &.v-enter-to {
+    transform-origin: left bottom;
+    animation-fill-mode both;
+    animation: zoomin 0.5s;
+  }
+
+  &.v-move {
+    animation-fill-mode both;
+    animation: flyup 0.5s;
+  }
+
+  &.v-leave-active {
+    animation: leaveAni .5s;
+    animation-fill-mode both;
+  }
 
   img.avatar {
     position absolute

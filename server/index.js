@@ -399,6 +399,8 @@ io.on('connection', function (socket) {
   console.log("Connection. Ref = " + ref)
   if (/^\/admin/.test(ref)) {
     adminLogin(socket)
+  } else if (/^\/wall/.test(ref)) {
+    socket.join(galiao.roomName)
   } else {
     playerLogin(socket)
   }

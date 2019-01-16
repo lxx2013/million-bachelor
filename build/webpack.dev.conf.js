@@ -26,6 +26,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     historyApiFallback: {
       rewrites: [
         { from: /^\/?admin/, to: path.posix.join(config.dev.assetsPublicPath, 'admin.html') },
+        { from: /^\/?wall/, to: path.posix.join(config.dev.assetsPublicPath, 'wall.html') },
         { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
       ],
     },
@@ -57,13 +58,19 @@ const devWebpackConfig = merge(baseWebpackConfig, {
       filename: 'index.html',
       template: 'index.html',
       inject: true,
-      excludeChunks: ['admin']
+      excludeChunks: ['admin', 'wall'],
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'wall.html',
+      template: 'wall.html',
+      inject: true,
+      excludeChunks: ['admin', 'app']
     }),
     new HtmlWebpackPlugin({
       filename: 'admin.html',
       template: 'admin.html',
       inject: true,
-      excludeChunks: ['app']
+      excludeChunks: ['app', 'wall']
     }),
     // copy custom static assets
     new CopyWebpackPlugin([
