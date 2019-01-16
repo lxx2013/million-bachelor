@@ -21,7 +21,7 @@
   </div>
 </template>
 <script>
-import WaterBack from "./WaterBack.vue"
+import WaterBack from "../components/WaterBack.vue"
 import socket from '../socket'
 
 export default {

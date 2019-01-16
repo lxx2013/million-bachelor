@@ -1,6 +1,7 @@
 <template>
   <div class="galiao">
-    <div class="msgs" ref="msgBox">
+    <wechatWall v-if="!isPhone" :messages="msgs.slice(-3)"></wechatWall>
+    <div v-if="isPhone" class="msgs" ref="msgBox">
       <div class="emptyNotice">等待主持人发题时，可以在这里尬聊一波...</div>
       <div class="msgItem" v-for="msg in msgs" :key="msg.key">
         <img :src="msg.avatar" class="avatar">
@@ -8,7 +9,7 @@
         <div class="text" @click="text=msg.text" @dblclick="send(msg.text)">{{ msg.text }}</div>
       </div>
     </div>
-    <div class="sendBox">
+    <div v-if="isPhone" class="sendBox">
       <input
         ref="inputBox"
         type="text"
@@ -27,6 +28,9 @@
 
 import Vue from "vue";
 import socket from "../socket";
+import wechatWall from "../components/wechatWall.vue"
+
+const UA = window.navigator.userAgent.toLowerCase()
 
 const MAX_HISTORY_COUNT = 50;
 const NOUN1 = "南一楼,南六楼,他,你,上一题,台上,节目,零食,气球".split(",");
@@ -48,24 +52,32 @@ function getPlaceholder() {
 }
 
 export default {
+  name: "GaLiao",
+  components: {
+    wechatWall
+  },
   data() {
     return {
       msgs: [],
       text: "",
-      placeholder: getPlaceholder()
+      placeholder: getPlaceholder(),
+      isPhone: UA && /(iPhone|iPod|Android|ios)/i.test(UA)
     };
   },
   mounted() {
-    this.handleChat = /** @param {ServerToUser.Chat} msg */ msg => {
-      this.msgs = this.msgs.concat(msg.messages).slice(-MAX_HISTORY_COUNT);
-      Vue.nextTick(() => this.scrollToBottom());
-    };
     socket.on("chat", this.handleChat);
   },
   beforeDestroy() {
     socket.off("chat", this.handleChat);
   },
   methods: {
+    /** @param {ServerToUser.Chat} msg */
+    handleChat(msg) {
+      this.msgs = this.msgs.concat(msg.messages).slice(-MAX_HISTORY_COUNT);
+      if (this.isPhone) {
+        Vue.nextTick(() => this.scrollToBottom());
+      }
+    },
     scrollToBottom() {
       var mbox = this.$refs.msgBox;
       mbox.scrollTop = mbox.scrollHeight;
@@ -87,14 +99,14 @@ export default {
 
 <style scoped lang="stylus">
 .galiao {
-  box-sizing: border-box;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
+  box-sizing border-box
+  position absolute
+  left 0
+  top 0
+  height 100vh
+  width 100vw
+  display flex
+  flex-direction column
 
   .msgs {
     background-color: #fafafa;
@@ -109,40 +121,41 @@ export default {
   }
 
   .sendBox {
-    border-top: 1px solid #fafafa;
-    background: #fafafa;
-    padding: 5px;
-    box-sizing: border-box;
-    height: 48px;
-    display: flex;
-    flex-basis: 48px;
-    flex-shrink: 0;
+    border-top 1px solid #fafafa
+    background #fafafa
+    padding 5px
+    box-sizing border-box
+    height 48px
+    display flex
+    flex-basis 48px
+    flex-shrink 0
 
     input {
-      flex-grow: 1;
-      border: 0;
-      font-size: inherit;
-      padding: 5px;
-      min-height: 1em;
+      flex-grow 1
+      border 0
+      font-size inherit
+      padding 5px
+      min-height 1em
+      user-select auto
     }
 
     .sendBtn {
-      background: #1787FF;
-      color: #ffffff;
-      border-radius: 5px;
-      border: 0;
-      padding: 5px 20px;
-      cursor: pointer;
+      background #1787FF
+      color #ffffff
+      border-radius 5px
+      border 0
+      padding 5px 20px
+      cursor pointer
     }
   }
 }
 
 .emptyNotice {
-  text-align: center;
-  flex-grow: 1;
-  padding: 20px;
-  margin: auto;
-  color: #999;
+  text-align center
+  flex-grow 1
+  padding 20px
+  margin auto
+  color #999
 }
 
 @keyframes zoomin {
@@ -167,45 +180,45 @@ export default {
   animation: zoomin 0.5s;
 
   img.avatar {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    height: 38px;
-    width: 38px;
-    border-radius: 5px;
-    box-shadow: 0 1px 5px #EEE;
+    position absolute
+    left 10px
+    top 10px
+    height 38px
+    width 38px
+    border-radius 5px
+    box-shadow 0 1px 5px #EEE
   }
 
   .text {
-    padding: 10px;
-    background: #FFF;
-    border-radius: 5px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    display: inline-block;
-    position: relative;
-    box-shadow: 0 1px 5px #EEE;
-    cursor: pointer;
+    padding 10px
+    background #FFF
+    border-radius 5px
+    white-space pre-wrap
+    word-break break-all
+    display inline-block
+    position relative
+    box-shadow 0 1px 5px #EEE
+    cursor pointer
 
     &:before {
-      content: ' ';
-      width: 0;
-      height: 0;
-      border: 8px solid transparent;
-      border-right-color: #FFF;
-      position: absolute;
-      right: 100%;
-      top: 10px;
+      content ' '
+      width 0
+      height 0
+      border 8px solid transparent
+      border-right-color #FFF
+      position absolute
+      right 100%
+      top 10px
     }
 
     &:hover, &:active {
-      color: #1787FF;
+      color #1787FF
     }
   }
 
   .nickname {
-    font-size: 85%;
-    color: #FFF;
+    font-size 85%
+    color #FFF
   }
 }
 </style>
