@@ -102,6 +102,8 @@ export default {
     background-size: 100% 60px;
     flex-grow: 1;
     overflow-y: scroll;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     flex-direction: column;
     display: flex;
   }
@@ -143,11 +145,26 @@ export default {
   color: #999;
 }
 
+@keyframes zoomin {
+  from {
+    max-height: 0;
+    transform: scale(0.4);
+    overflow: hidden;
+  }
+
+  to {
+    max-height: 50vh;
+    overflow: hidden;
+  }
+}
+
 .msgItem {
   text-align: left;
   padding: 10px;
   padding-left: 68px;
   position: relative;
+  transform-origin: left center;
+  animation: zoomin 0.5s;
 
   img.avatar {
     position: absolute;
