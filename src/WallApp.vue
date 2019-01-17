@@ -1,6 +1,6 @@
 <template>
   <div class="galiao">
-    <wechatWall :messages="msgs"></wechatWall>
+    <wechatWall :messages="filterMsgs"></wechatWall>
   </div>
 </template>
 
@@ -26,7 +26,7 @@ const DEFAULT_TIME = 1000
 /** 默认新消息的时间加成, 单位 ms/字 */
 const LENGTH_TIME = 200
 /** 被复读的消息刷新后的持续时间, 单位 ms */
-const REPEAT_TIME = 3000
+const REPEAT_TIME = 5000
 
 export default {
   name: "GaLiaoWall",
@@ -47,6 +47,18 @@ export default {
   beforeDestroy() {
     socket.off("chat", this.handleChat);
   },
+  computed: {
+    filterMsgs(){
+      return this.msgs.map((val, index) => {
+        return {
+          key:val.key,
+          text: val.text,
+          repeats: val.repeats,
+          avatar:val.avatar
+        }
+      })
+    }
+  },
   methods: {
     /**
      * 接收服务器推送的新信息,处理后放入队列 queue 中
@@ -58,7 +70,7 @@ export default {
         let x = this.msgs.find(x => x.text == i.text) || this.queue.find(x => x.text == i.text)
         if (x) {
           x.repeats++
-          x.timeOut = REPEAT_TIME + x.repeats * 500
+          x.timeOut = REPEAT_TIME + x.repeats * 100
         }
         //新的信息
         else {

@@ -3,7 +3,11 @@
     <transition-group name="list" tag="ul">
       <li v-for="msg in messages" :key="msg.key">
         <div class="avatar" :style="'background-image:url('+msg.avatar+')'">
-          <div class="repeats" v-show="msg.repeats>0">+{{msg.repeats}}</div>
+          <div
+            class="repeats"
+            v-show="msg.repeats>0"
+            :class="{'jump':jumps[msg.key]}"
+          >+{{msg.repeats}}</div>
         </div>
         <div class="text" :style="'font-size:'+size(msg.text)">{{msg.text}}</div>
       </li>
@@ -23,7 +27,11 @@ export default {
   components: {},
   data() {
     return {
-      fontSize: { 0: '6vw', 24: '4vw', 42: '4vw', 51: '3.4vw' ,10000:'3vw'}
+      fontSize: { 0: '6vw', 24: '4vw', 42: '4vw', 51: '3.4vw', 10000: '3vw' },
+      jumps: {}, //控制复读机"+1"脚标的跳动 类型: { key: boolean },
+      repeats:{},/** 纪录复读机"+1"脚标的次数 类型: { key: number }.
+                  *  从msg 中剥离出来以减少跳动现象, 即在 watch变化时,不应比较 val[index].xx == oldVal[index].xx,
+                  *  而应比较 val.key.xx == this.repeats.key.xx */
     }
   },
   methods: {
@@ -35,17 +43,39 @@ export default {
         }
       }
     }
+  },
+  watch: {
+    'messages': {
+      handler: function (val, oldVal) {
+        var that = this
+        val.forEach((x, index) => {
+          if( x.repeats <= 0){
+            this.repeats[x.key] = x.repeats
+          }
+          else if (x.repeats !== this.repeats[x.key]) {
+            this.repeats[x.key] = x.repeats
+            Vue.set(that.jumps,x.key,true)
+            setTimeout(() => {
+              Vue.set(that.jumps,x.key,false)
+            }, 300)
+          }
+        })
+      },
+      deep: true
+    }
   }
 }
 </script>
 
 <style scoped lang="stylus">
-.list-move{
+.list-move {
   transition all 1s
 }
-.list-enter-active,.list-leave-active{
+
+.list-enter-active, .list-leave-active {
   transition all 1s
 }
+
 .list-leave-active {
   position absolute
 }
@@ -57,7 +87,7 @@ export default {
 
 .list-leave-to {
   opacity 0
-  transform translate3d(15%,-150%,-200px)
+  transform translate3d(15%, -150%, -200px)
 }
 
 .wechatWall {
@@ -65,6 +95,7 @@ export default {
   perspective 600px
   width 100vw
   height 100vh
+
   ul {
     list-style none
     display flex
@@ -84,6 +115,7 @@ export default {
       justify-content flex-start
       border-radius 2vw
       overflow hidden
+
       .avatar {
         flex 0 0 15vw
         background-size cover
@@ -92,17 +124,24 @@ export default {
         border-radius 50%
         margin 0 2vw
         position relative
-        .repeats{
+
+        .repeats {
           position absolute
           right 0
           top 0
-          padding 0 5px 0 3px
-          height 3vw
-          line-height 3vw
-          border-radius 3vw
+          padding 2px 5px 0 3px
+          height 4vw
+          line-height 4vw
+          border-radius 4vw
           background red
           color white
           font-weight 700
+          font-size 2.8vw
+          transition all 0.3s ease-in-out
+
+          &.jump {
+            transform scale(1.2)
+          }
         }
       }
 
