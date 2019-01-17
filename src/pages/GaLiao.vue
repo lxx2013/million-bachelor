@@ -29,27 +29,12 @@
 
 import Vue from "vue";
 import socket from "../socket";
+import { getPlaceHolder } from "../lib/getPlaceHolder.js";
 
 const UA = window.navigator.userAgent.toLowerCase()
 
 const MAX_HISTORY_COUNT = 50;
-const NOUN1 = "南一楼,南六楼,他,你,上一题,台上,节目,零食,气球".split(",");
-const NOUN2 = "好不好玩,帅不帅,美不美,动听不动听,的难度,的姿势,的日常,的表现,的颜色,的吉他".split(
-  ","
-);
-const HINT2 = `双击别人说的话，可以复读
-人类的本质，在于双击别人的话
-老铁双击666啊
-春节快乐，给您拜个早年啦`.split("\n");
 
-function randPick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function getPlaceholder() {
-  if (Math.random() > 0.6) return randPick(HINT2);
-  return `等待时，不如聊聊${randPick(NOUN1)}${randPick(NOUN2)}？`;
-}
 
 export default {
   name: "GaLiao",
@@ -57,7 +42,7 @@ export default {
     return {
       msgs: [],
       text: "",
-      placeholder: getPlaceholder(),
+      placeholder: getPlaceHolder(),
       stopScrollingAt: 0,
     };
   },
@@ -80,7 +65,7 @@ export default {
       if (this.stopScrollingAt > +new Date) setTimeout(()=>this.scrollToBottom(), 50)
     },
     send(text) {
-      this.placeholder = getPlaceholder();
+      this.placeholder = getPlaceHolder();
       text = typeof text === "string" ? text : this.text.trim();
       if (!text) return;
 

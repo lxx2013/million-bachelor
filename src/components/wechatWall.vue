@@ -2,7 +2,9 @@
   <div class="wechatWall">
     <transition-group name="list" tag="ul">
       <li v-for="msg in messages" :key="msg.key">
-        <div class="avatar" :style="'background-image:url('+msg.avatar+')'"></div>
+        <div class="avatar" :style="'background-image:url('+msg.avatar+')'">
+          <div class="repeats" v-show="msg.repeats>0">+{{msg.repeats}}</div>
+        </div>
         <div class="text" :style="'font-size:'+size(msg.text)">{{msg.text}}</div>
       </li>
     </transition-group>
@@ -21,7 +23,7 @@ export default {
   components: {},
   data() {
     return {
-      fontSize: { 0: '6vw', 22: '6vw', 33: '4.8vw', 55: '4vw' ,10000:'3vw'}
+      fontSize: { 0: '6vw', 24: '4vw', 42: '4vw', 51: '3.4vw' ,10000:'3vw'}
     }
   },
   methods: {
@@ -89,6 +91,19 @@ export default {
         height 15vw
         border-radius 50%
         margin 0 2vw
+        position relative
+        .repeats{
+          position absolute
+          right 0
+          top 0
+          padding 0 5px 0 3px
+          height 3vw
+          line-height 3vw
+          border-radius 3vw
+          background red
+          color white
+          font-weight 700
+        }
       }
 
       .text {
