@@ -22,7 +22,7 @@ function remove(arr, item) {
 }
 
 /** 默认新消息的持续时间, 单位 ms */
-const DEFAULT_TIME = 1000
+const DEFAULT_TIME = 3000
 /** 默认新消息的时间加成, 单位 ms/字 */
 const LENGTH_TIME = 200
 /** 被复读的消息刷新后的持续时间, 单位 ms */
@@ -66,15 +66,15 @@ export default {
      */
     handleChat(msg) {
       for (let i of msg.messages) {
-        //如果有相同信息, 即复读了, 则立即更新页面, 初始时 timeOut 为正常值, 每额外一次 repeat 都重置时间
+        //如果有相同信息, 即复读了, 则立即更新页面, 初始时 timeOut 为正常值, 第一次 repeat 会延长展示时间
         let x = this.msgs.find(x => x.text == i.text) || this.queue.find(x => x.text == i.text)
         if (x) {
+          if (x.repeats == 0) x.timeOut = Math.max(x.timeOut, REPEAT_TIME)
           x.repeats++
-          x.timeOut = REPEAT_TIME + x.repeats * 100
         }
         //新的信息
         else {
-          i.timeOut = DEFAULT_TIME + LENGTH_TIME * i.text.length
+          i.timeOut = DEFAULT_TIME + LENGTH_TIME * Math.min(i.text.length, 10)
           i.repeats = 0
           this.queue.push(i)
         }
