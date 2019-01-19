@@ -42,7 +42,7 @@ export default {
     return {
       msgs: [],
       text: "",
-      placeholder: getPlaceHolder(),
+      placeholder: "点击这里输入...",
       stopScrollingAt: 0,
     };
   },

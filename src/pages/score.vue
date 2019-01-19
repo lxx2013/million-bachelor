@@ -2,15 +2,15 @@
   <div class="score">
     <section class="card">
       <div class="title">
-        <div class="title-mid">总得分榜</div>
+        <div class="title-mid">本轮英雄榜</div>
       </div>
       <div class="table-title">
         <div class="left">头像</div>
         <div class="mid">昵称</div>
-        <div class="right">答对题数</div>
+        <div class="right">存活题数</div>
       </div>
       <ul>
-        <li v-for="(user,index) in score.users" :key="index">
+        <li v-for="(user,index) in score.users" :key="index" :class="{golden: user.score==maxScore}">
           <div class="avatar" :style="'background-image:url('+user.avatar+')'"></div>
           <div class="name">{{user.name}}</div>
           <div class="user-score">{{user.score}}</div>
@@ -39,24 +39,12 @@ export default {
       default: () => { return {} }
     },
   },
-  data() {
-    return {
-      water: 0,
-      timer: [],
+  computed: {
+    maxScore() {
+      let bestUser = this.score.users[0]
+      return bestUser ? bestUser.score : -1
     }
   },
-  methods: {
-
-  },
-  mounted() {
-    this.water = (15000 - this.score.time) / 150
-    this.timer[1] = setInterval(() => {
-      this.water += 102 / ((1000 / 33) * 15);
-      if (this.water >= 100) {
-        clearInterval(this.timer[1]);
-      }
-    }, 33);
-  }
 }
 </script>
 
@@ -101,6 +89,9 @@ export default {
           width 2em
           height 2em
           border-radius 50%
+        }
+        &.golden {
+          color: #F40;
         }
       }
     }

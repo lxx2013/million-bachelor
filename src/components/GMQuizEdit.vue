@@ -3,7 +3,7 @@
     <div class="qe-actions">
       <v-btn @click="importX">导入</v-btn>
       <v-btn @click="exportX">导出</v-btn>
-      <v-btn @click="submit" class="yellow">开始游戏</v-btn>
+      <v-btn @click="submit" class="yellow">使用这套题</v-btn>
     </div>
 
     <transition-group name="quiz-list" tag="div">
@@ -74,7 +74,7 @@ export default {
     },
     submit() {
       socket.emit("useQuiz", this.quizList);
-      alert("DONE");
+      alert("已启用这套题，请进入流程控制界面。");
     }
   },
   components: {

@@ -4,9 +4,9 @@ const MBIDStorage = require('./mbidStorage')
 const axios = require('axios').default
 const stringHash = require('./stringHash')
 
-const NOT_USE_WECHAT = true
-const appId = "wxbfeab713561ea29c"
-const appSecret = "2facca9696b23da9d79dda2aca8ef663"
+let NOT_USE_WECHAT = true
+let appId = ""
+let appSecret = ""
 
 const mbidStorage = new MBIDStorage()
 
@@ -25,6 +25,17 @@ const getAccessToken = (function () {
     return lastToken
   }
 })()
+
+/**
+ * @param {string} _appId
+ * @param {string} _appSecret
+ * @param {boolean} _emulateWechat 不强制用户使用微信登录
+ */
+exports.init = function(_appId, _appSecret, _emulateWechat) {
+  appId = _appId
+  appSecret = _appSecret
+  NOT_USE_WECHAT = _emulateWechat
+}
 
 /**
  * @typedef WechatInfo

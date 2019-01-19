@@ -72,7 +72,7 @@ declare namespace ServerToUser {
       id: string
       name: string   // 用户名字
       avatar: string // 头像 url
-      score: number  // 对的题数
+      score: number  // 一路存活到了第几题
     }>
   }
 
@@ -126,7 +126,7 @@ declare namespace Server {
     /** 用户生命数（=剩余机会+1） */
     life: number
 
-    /** 答对的题目数 */
+    /** 一路存活到了第几题 */
     score: number
 
     /** 当前题目他做的选项。-1 == 没选择 */

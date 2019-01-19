@@ -134,7 +134,7 @@
         <v-card>
           <v-card-title class="orange lighten-3">
             <v-icon large left>group</v-icon>
-            <span class="title font-weight-light">场上玩家</span>
+            <span class="title font-weight-light">玩家 ({{connectedPlayerCount}}人在线)</span>
             <v-btn @click="downloadScoreBoard">保存战况</v-btn>
           </v-card-title>
           <div>
@@ -185,6 +185,13 @@ export default {
     }
   },
   computed: {
+    connectedPlayerCount() {
+      let ans = 0;
+      this.players.forEach(p => {
+        if (p.connected) ans++;
+      });
+      return ans;
+    },
     statusText() {
       let { status } = this;
       if (status === 0) return "空闲";
@@ -220,7 +227,10 @@ export default {
     downloadScoreBoard() {
       let date = new Date();
       let filename = `scoreboard-${date.getHours()}-${date.getMinutes()}.html`;
-      let alivePlayers = this.players.filter(player => player.life > 0);
+      let bestScore = this.players[0].score;
+      let winnerPlayers = this.players.filter(
+        player => player.score == bestScore
+      );
       let content = `<html><head>
       <meta charset="utf-8">
       <style>
@@ -233,23 +243,23 @@ export default {
         }
         function onlyAliveGuys(){
           var ta = document.getElementById('aliveGuys')
-          ta.style.display=''
+          ta.style.display='block'
           ta.textContent=${JSON.stringify(
-            alivePlayers.map(x => x.openid).join("\n")
+            winnerPlayers.map(x => x.openid).join("\n")
           )}
         }
       <\/script>
       </head><body>
       <button onclick="fuckavatar()">去掉全部头像</button>
       <button onclick="onlyAliveGuys()">
-        只查看活着的 ${alivePlayers.length} 人的ID
+        只查看存活到第 ${bestScore} 题的人的ID
       </button>
 
-      <textarea id="aliveGuys" style="display:none"></textarea>
+      <textarea id="aliveGuys" style="display:none;width:90%;"></textarea>
 
       <table border="1">
         <tr> <th colspan=2>战况汇报</th>  <td colspan=3>${date.toLocaleString()}</td> </tr>
-        <tr> <th>OpenID</th> <th>头像</th>  <th>名字</th> <th>得分</th> <th>生命数</th> </tr>
+        <tr> <th>OpenID</th> <th>头像</th>  <th>名字</th> <th>存活题数</th> <th>当前剩余生命数</th> </tr>
         ${this.players
           .map(
             p => `<tr>

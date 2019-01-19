@@ -1,6 +1,11 @@
 /// @ts-check
 /// <reference path="../types.d.ts" />
 
+const IS_PROD = process.argv.includes('--prod')
+if (!IS_PROD) {
+  console.warn("Server is in development mode! Don't forget --prod in production env.")
+}
+
 const Express = require('express')
 const Path = require('path')
 
@@ -11,8 +16,10 @@ var debounce = require('lodash.debounce');
 var WechatBridge = require('./wechatBridge');
 var GaLiaoManager = require('./gaLiao');
 
+WechatBridge.init("wxbfeab713561ea29c", "2facca9696b23da9d79dda2aca8ef663", !IS_PROD)
+
 const WSHostPrefix = "https://k-on.live"
-const AUTO_ENTER_WAIT = false
+const AUTO_ENTER_WAIT = IS_PROD
 
 const STATUS_IDLE = 0
 const STATUS_QUESTION = 1
@@ -189,6 +196,7 @@ function statAndEmitAnswer() {
       if (player.answer !== question.answer.index) {
         if (player.life > 1) {
           // 能复活
+          player.score++
           player.life--
           resurrection.add(player)
         } else if (player.life == 1) {
