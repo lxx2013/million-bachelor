@@ -28,6 +28,8 @@
 </template>
 
 <script>
+/// <reference path="../../types.d.ts" />
+
 import GMQuizCard from "./GMQuizCard.vue";
 import socket from "../socket";
 import downloadFile from "../lib/downloadFile";
@@ -66,16 +68,59 @@ export default {
     importX() {
       uploadFile(text => {
         try {
-          this.quizList = JSON.parse(text);
+          var wb = XLSX.read(text, { type: 'binary' })
+          var data = this.to_json(wb)
+          this.quizList = this.ws_to_quizList(data)
         } catch (err) {
-          alert("Failed to Import");
+          alert("Failed to Import", err);
         }
       });
     },
     submit() {
       socket.emit("useQuiz", this.quizList);
       alert("已启用这套题，请进入流程控制界面。");
-    }
+    },
+    /**
+     * 把 js-xlsx 工具的 workbook 读取到的 json 数据转为答题系统需要的题目
+     * @returns Server.Question[]
+     * */
+    ws_to_quizList(data) {
+      var rows = []
+      if (typeof data == 'string') data = JSON.parse(data)
+      if (typeof data == 'object') {
+        for (let i in data) {
+          rows = rows.concat(data[i])
+        }
+      }
+      rows = rows.filter(x => parseInt(x[0]) >= 0)
+      return rows.map((x, index) => {
+        return {
+          uid: x[1] + index,
+          question: x[3],
+          author: x[2],
+          options: [x[4], x[5], x[6], x[7]],
+          answer: { index: this.filterAnwser(x[8],index), hint: "" }
+        }
+      })
+    },
+    filterAnwser(str,number){
+      str = (str+'').trim().toUpperCase()
+      var array = ['A','B','C','D']
+      var answer = -1
+      array.forEach((x,index)=>{
+        if(str.match(x))
+          answer = index
+      })
+      return answer >= 0 ? answer : alert(`第${number+1}题目答案有问题.请手动校正!`)
+    },
+    to_json(workbook) {
+      var result = {};
+      workbook.SheetNames.forEach(function (sheetName) {
+        var roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        if (roa.length) result[sheetName] = roa;
+      });
+      return JSON.stringify(result, 2, 2);
+    },
   },
   components: {
     GMQuizCard
@@ -93,12 +138,12 @@ selectFile.addEventListener(
     if (files.length !== 1) return;
 
     var reader = new FileReader();
-    reader.onload = function() {
+    reader.onload = function () {
       if (typeof selectFileCallback !== "function") return;
       selectFileCallback(reader.result);
       selectFileCallback = null;
     };
-    reader.readAsText(files[0]);
+    reader.readAsBinaryString(files[0]);
   },
   false
 );

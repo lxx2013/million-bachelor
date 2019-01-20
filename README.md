@@ -37,4 +37,3 @@ firefox 在识别:first-letter 时,会尝试去判断第一个字符是不是 A-
 #### 解决移动端页面点击图标或按钮产生透明灰色背景
 `html,body{-webkit-text-size-adjust: 100%;-webkit-tap-highlight-color: rgba(0, 0, 0, 0);}`
 
-#### chrome(以及 ios safari) linear-gradient 颜色偏暗问题
