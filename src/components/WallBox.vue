@@ -17,7 +17,7 @@
 
 <script>
 export default {
-  name: "wechatWall",
+  name: "WallBox",
   props: {
     messages: {
       type: Array,
