@@ -87,7 +87,6 @@ export default {
       /** @param {ServerToUser.Answer} o */ o => {
         that.answer = o;
         that.state = "answer";
-        console.log(o.youDead);
         if (!this.dead && o.youDead) {
           this.showDeadNotice = true;
           this.deadMsg = getDeadMsg();

@@ -46,10 +46,9 @@ export default {
   },
   mounted() {
     socket.on("chat", this.handleChat);
+    socket.on("luckyStart", data=>{this.luckyData=data});
+    socket.on("luckyEnd", ()=>{this.luckyData=null});
     this.timer = setTimeout(this.update, 100);
-  },
-  beforeDestroy() {
-    socket.off("chat", this.handleChat);
   },
   computed: {
     filterMsgs() {
