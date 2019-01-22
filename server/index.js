@@ -47,7 +47,7 @@ let optionNumbers = [0, 0, 0, 0]
 
 /** 这一项仅用于为断线重连的用户计算时间。是否可以答题，参考 status 变量 */
 var acceptAnswerUntil = 0
-const answeringTime = 15000
+const answeringTime = 10000
 const answeringAcceptableDelay = 3000
 
 /** 还活着多少人 */
@@ -166,7 +166,7 @@ function emitNextQuestion() {
 
   resurrection.clear()
   optionNumbers = new Array(question.options.length).fill(0)
-  acceptAnswerUntil = +new Date() + answeringTime
+  acceptAnswerUntil = +new Date() + answeringTime + answeringAcceptableDelay
   currentQuestionStated = false
   setStatus(STATUS_QUESTION)
 
@@ -237,7 +237,7 @@ function sendQuestionSceneToPlayer(player) {
     question: question.question,
     options: question.options,
 
-    time: Math.max(acceptAnswerUntil - (+new Date), 1000),
+    time: Math.min(answeringTime, Math.max(acceptAnswerUntil - (+new Date), 1000)),
     peopleLeft: peopleLeft,
   }))
 }

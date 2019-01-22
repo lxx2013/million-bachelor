@@ -12,7 +12,7 @@
     </div>
     <section class="card">
       <div class="clock">
-        <Clock :value="leftTime" :max="15"></Clock>
+        <Clock :value="leftTimeSec" :max="totalTimeSec"></Clock>
       </div>
       <div class="title">
         <div class="title-left">第 {{question.index}} / {{question.total}} 题</div>
@@ -53,10 +53,16 @@ export default {
   },
   data() {
     return {
-      leftTime: 1000,
-      water:0,
-      timer:[],
+      totalTime: 0,
+      leftTime: 0,
+      countingSince: 0,
+      timer: 0,
     }
+  },
+  computed: {
+    water() { return (this.totalTime - this.leftTime) * 102 / this.totalTime },  // FIXME 102 是因为水面不能漫到界面顶部，以后应该修正 WaterBack 组件
+    totalTimeSec() { return Math.floor(this.totalTime/1000) },
+    leftTimeSec() { return this.leftTime / 1000 },
   },
   methods: {
     select(index) {
@@ -64,20 +70,18 @@ export default {
     }
   },
   mounted() {
-    this.leftTime = this.question.time/1000
-    this.timer[0] = setInterval(()=>{
-      this.leftTime = Math.max(this.leftTime - 1, 0.01)
-      if(this.leftTime <= 0.1 ){
-        clearInterval(this.timer[0])
+    this.leftTime = this.totalTime = this.question.time
+    this.countingSince = +new Date
+
+    this.timer = setInterval(() => {
+      let timeElapsed = +new Date - this.countingSince
+      this.leftTime = this.totalTime - timeElapsed
+
+      if (this.leftTime <= 0) {
+        this.leftTime = 0
+        clearInterval(this.timer)
       }
-    },1000)
-    this.water = (15000 - this.question.time) /150
-    this.timer[1] = setInterval(() => {
-          this.water += 102 / ((1000 / 33) * 15);
-          if (this.water >= 100) {
-            clearInterval(this.timer[1]);
-          }
-        }, 33);
+    }, 33);
   }
 }
 </script>
