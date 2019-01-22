@@ -21,7 +21,7 @@
         <MarkdownText :value="question.question"/>
       </div>
       <div class="options" v-for="(option,index) in question.options" :key="index" >
-        <Button :question="question" :index="index" @emitClick="index=>$emit('emitClick',index)">
+        <Button :question="question" :index="index" @emitClick="index=>(leftTime>0)&&$emit('emitClick',index)">
           <MarkdownText :value="option" />
         </Button>
       </div>

@@ -42,7 +42,6 @@
 export default {
   name: "clock",
   props: {
-    min: { type: Number | String, default: 0 },
     max: { type: Number | String, default: 100 },
     value: {
       type: Number | String,
@@ -81,10 +80,6 @@ export default {
     top 115%
     left 50%
     transform translate(-50%,0)
-  }
-  circle {
-    -webkit-transition stroke-dasharray linear 0.98s
-    transition stroke-dasharray linear 0.98s
   }
 }
 </style>
