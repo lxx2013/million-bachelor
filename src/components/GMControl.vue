@@ -35,7 +35,21 @@
               <v-btn :disabled="status === 3" @click="e('showScore')">发送得分榜</v-btn>
               <v-btn @click="e('reset',true)">重置</v-btn>
             </v-flex>
-            <v-flex d-flex xs12 style="padding:0 20px">当前{{connectedPlayerCount}}人在线</v-flex>
+            <v-flex xs12>
+              <div class="numberCard">
+                <span class="number">{{ connectedPlayerCount }}</span>人在线
+              </div>
+              <div class="numberCard">
+                第
+                <span class="number">{{ index }}/{{ total }}</span> 题
+              </div>
+              <div class="numberCard">
+                <span class="number">{{ peopleLeft }}</span> 人存活
+              </div>
+              <div class="numberCard">
+                <span class="number">{{ resurrectionNumber }}</span> 人本轮复活
+              </div>
+            </v-flex>
           </v-layout>
         </v-card>
       </v-flex>
@@ -52,7 +66,7 @@
         <v-card>
           <v-card-title class="green">
             <v-icon large left>message</v-icon>
-            <span class="title font-weight-light">题目</span>
+            <span class="title font-weight-light">第 {{ index }} 题</span>
           </v-card-title>
 
           <v-card-text v-if="question">
@@ -70,6 +84,36 @@
             </div>
             <div>
               <MarkdownText :value="question.answer.hint"/>
+              （出题人 {{ question.author }}）
+            </div>
+          </v-card-text>
+          <v-card-text v-else>
+            <p>还没有开始游戏...请点击顶部的重置，然后开始发题</p>
+          </v-card-text>
+        </v-card>
+
+        <v-card v-if="nextQuestion" style="margin-top: 15px">
+          <v-card-title class="pink lighten-3">
+            <v-icon large left>message</v-icon>
+            <span class="title font-weight-light">剧透下一题</span>
+          </v-card-title>
+
+          <v-card-text v-if="nextQuestion">
+            <p style="font-size: 1.3em">
+              <MarkdownText :value="nextQuestion.question"/>
+            </p>
+            <div>
+              <v-btn
+                v-for="(opt, idx) in nextQuestion.options"
+                :key="idx"
+                :class="{'light-green lighten-2': nextQuestion.answer.index==idx}"
+              >
+                <MarkdownText :value="opt"/>
+              </v-btn>
+            </div>
+            <div>
+              <MarkdownText :value="nextQuestion.answer.hint"/>
+              （出题人 {{ nextQuestion.author }}）
             </div>
           </v-card-text>
           <v-card-text v-else>
@@ -78,7 +122,7 @@
         </v-card>
       </v-flex>
 
-      <v-flex xs12 md5>
+      <v-flex xs12 md5 v-if="!isMobile">
         <v-card>
           <v-card-title class="blue lighten-2">
             <v-icon large left>pie_chart</v-icon>
@@ -171,6 +215,7 @@ export default {
       index: 0,
       total: 1,
       question: null,
+      nextQuestion: null,
       currentQuestionStated: false,
       optionNumbers: [],
       players: []
@@ -302,5 +347,18 @@ export default {
 
 .scoreboard tr:hover {
   border-bottom: 1px solid #999;
+}
+
+div.numberCard {
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 160px;
+  text-align: center;
+}
+
+span.number {
+  display: inline-block;
+  font-size: 24px;
+  font-weight: bold;
 }
 </style>

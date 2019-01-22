@@ -49,6 +49,9 @@ declare namespace ServerToUser {
     /** 你还剩余的机会 */
     yourChance: number
 
+    /** 你是否挂了 */
+    youDead: boolean
+
     /** 你选择的答案 */
     yourAnswer: number
 
@@ -161,6 +164,7 @@ declare namespace ServerToAdmin {
     index: number
     total: number
     question: Server.Question
+    nextQuestion: Server.Question
     currentQuestionStated: boolean
 
     /** 本题复活人数 */

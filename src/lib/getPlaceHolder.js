@@ -27,3 +27,12 @@ export function getPlaceHolderMsg(){
     avatar:"http://lorempixel.com/100/100/" + randPick(pics) + `/${Math.random()*20>>1}`
   }
 }
+
+export function getDeadMsg() {
+  return randPick([
+    "有缘下回再来的冲顶吧",
+    "胜败乃兵家常事，大侠请再接再厉",
+    "把好运气留到抽奖中吧",
+    "别气馁，说不准你是抽奖欧皇呢"
+  ])
+}

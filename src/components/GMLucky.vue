@@ -9,9 +9,9 @@
       <v-btn :loading="working" color="primary" @click="luckyStart">开始抽奖</v-btn>
     </v-layout>
 
-    <v-layout v-if="!shown">
-      <p>当前 {{ playerCount }} 人已经在墙上发布了 {{ messageCount }} 消息</p>
-    </v-layout>
+    <v-layout v-if="shown" style="color:red">上墙的统计数据已经清空了，大家继续踊跃发言哦！</v-layout>
+
+    <v-layout>当前 {{ playerCount }} 人已经在墙上发布了 {{ messageCount }} 消息。</v-layout>
 
     <v-layout v-if="luckyData">
       <GMGuy

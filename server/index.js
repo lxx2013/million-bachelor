@@ -151,6 +151,7 @@ const sendAdminStatus = throttle(function () {
   var payload = {
     status, peopleLeft, index: index + 1, total: questions.length,
     question: questions[index] || null,
+    nextQuestion: questions[index+1] || null,
     resurrectionNumber: resurrection.size,
     players: playersTmp,
     optionNumbers,
@@ -178,6 +179,8 @@ function startGame() {
   index = -1
   currentQuestionStated = true
   io.to("player").emit("wait", {})
+
+  console.log("[[reset]] ----- " + new Date)
 }
 
 /** 给玩家发布下一题 */
@@ -269,11 +272,12 @@ function luckyEnd() {
 
 /** 给玩家发布答案，并统计得分、复活之类的事情 */
 function statAndEmitAnswer() {
+  // 如果没开始的话
+  const question = questions[index]
+  if (!question) return
+
   // 如果没统计的话
   if (!currentQuestionStated) {
-    const question = questions[index]
-    if (!question) return
-
     currentQuestionStated = true
     resurrection.clear()
 
@@ -342,6 +346,7 @@ function sendAnswerSceneToPlayer(player) {
     options: question.options,
     correctAnswer: question.answer.index,
     yourChance: Math.max(0, player.life - 1),
+    youDead: player.life === 0,
     yourAnswer: player.answer,
     optionNumbers,
     resurrectionNumber: resurrection.size,
