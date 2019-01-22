@@ -71,6 +71,9 @@ var luckyBlacklist = []
 /** 全场的统计，除了能找到话痨以外好像没啥用 */
 var globalStat = new GaLiaoStat()
 
+/** 复读的统计，找到最佳复读机 */
+var repeaterStat = new GaLiaoStat()
+
 /**
  * 处理一个新的管理员连接
  * @param {SocketIO.Socket} socket
@@ -151,7 +154,7 @@ const sendAdminStatus = throttle(function () {
   var payload = {
     status, peopleLeft, index: index + 1, total: questions.length,
     question: questions[index] || null,
-    nextQuestion: questions[index+1] || null,
+    nextQuestion: questions[index + 1] || null,
     resurrectionNumber: resurrection.size,
     players: playersTmp,
     optionNumbers,
@@ -467,14 +470,16 @@ async function playerLogin(socket) {
   })
 
   socket.on('chat', /** @param {UserToServer.Chat} msg */(msg) => {
+    let isRepeat = galiao.isRepeat(msg.text)
     galiao.send({
       avatar: player.avatar,
       nickname: player.name,
       time: +new Date(),
       text: msg.text,
     })
-    luckyStat.push(player.openid)
+    if (!isRepeat) luckyStat.push(player.openid)
     globalStat.push(player.openid)
+    if (isRepeat) repeaterStat.push(player.openid)
     sendAdminLuckyStat()
   })
 

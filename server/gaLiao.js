@@ -54,6 +54,14 @@ class GaLiaoRoom {
     })
     this.flush()
   }
+
+  /**
+   * 检查消息是不是复读的
+   * @param {string} text
+   */
+  isRepeat(text) {
+    return this.historyMsgs.slice(-10).some(msg => msg.text === text)
+  }
 }
 
 module.exports = GaLiaoRoom
