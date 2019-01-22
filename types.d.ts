@@ -172,6 +172,14 @@ declare namespace ServerToAdmin {
     /** 这里的 socket 都是 null，只能看 connected */
     players: (Server.Player & { connected: boolean })[]
   }
+
+  /** "lucky" 抽奖状态 */
+  interface Lucky {
+    shown?: boolean
+    luckyData?: ServerToWall.LuckyStart
+    messageCount?: number
+    playerCount?: number
+  }
 }
 
 /** 管理员到服务器 */
@@ -195,6 +203,39 @@ declare namespace AdminToServer {
     text: string,
     passcode: string
   }
+
+  /** "luckyStart" 进入抽奖环节 */
+  type LuckyStart = {
+    count: number
+  }
+
+  /** "luckyEnd" 离开抽奖环节 */
+}
+
+/** 服务器到墙的消息 */
+declare namespace ServerToWall {
+  /** "chat" 聊天消息（上墙消息） 和用户端一致的 */
+  type Chat = ServerToUser.Chat
+
+  /** "luckyStart" 进入抽奖环节，显示抽奖墙 */
+  interface LuckyStart {
+    /** 参与抽奖的玩家们，可能中奖也可能不中 */
+    players: Array<{
+      id: string
+      name: string
+      avatar: string
+      priority: number // 尬聊消息数量，数字越大则表示中奖概率越高
+    }>
+
+    /** 中奖玩家 */
+    winners: Array<{
+      id: string
+      name: string
+      avatar: string
+      priority: number // 尬聊消息数量，数字越大则表示中奖概率越高
+    }>
+  }
+  /** "luckyEnd" 离开抽奖环节，回到正常显示界面 */
 }
 
 declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>

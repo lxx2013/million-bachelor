@@ -35,9 +35,7 @@
               <v-btn :disabled="status === 3" @click="e('showScore')">发送得分榜</v-btn>
               <v-btn @click="e('reset',true)">重置</v-btn>
             </v-flex>
-            <v-flex d-flex xs12 style="padding:0 20px">
-              当前{{connectedPlayerCount}}人在线
-            </v-flex>
+            <v-flex d-flex xs12 style="padding:0 20px">当前{{connectedPlayerCount}}人在线</v-flex>
           </v-layout>
         </v-card>
       </v-flex>
@@ -141,7 +139,12 @@
             <v-btn @click="downloadScoreBoard">保存战况</v-btn>
           </v-card-title>
           <div>
-            <GMGuy v-for="player in players" :key="player.openid" :player="player"/>
+            <GMGuy
+              v-for="player in players"
+              :key="player.openid"
+              :player="player"
+              full
+            >{{ player.score }} 分，{{ player.life }} 命</GMGuy>
           </div>
         </v-card>
       </v-flex>

@@ -15,11 +15,12 @@ var io = require('socket.io')(http);
 var throttle = require('lodash.throttle');
 var WechatBridge = require('./wechatBridge');
 var GaLiaoManager = require('./gaLiao');
+var GaLiaoStat = require('./GaStat');
 
 WechatBridge.init("wxbfeab713561ea29c", "2facca9696b23da9d79dda2aca8ef663", !IS_PROD)
 
 const WSHostPrefix = "https://k-on.live"
-const AUTO_ENTER_WAIT = IS_PROD
+const AUTO_ENTER_WAIT = true
 
 const STATUS_IDLE = 0
 const STATUS_QUESTION = 1
@@ -61,6 +62,15 @@ var players = new Map()
 
 var galiao = new GaLiaoManager(io)
 
+/** 抽奖用的统计器，在每次抽奖环节后重置 */
+var luckyStat = new GaLiaoStat()
+
+/** @type {string[]} 中奖黑名单，避免欧皇连续中奖 */
+var luckyBlacklist = []
+
+/** 全场的统计，除了能找到话痨以外好像没啥用 */
+var globalStat = new GaLiaoStat()
+
 /**
  * 处理一个新的管理员连接
  * @param {SocketIO.Socket} socket
@@ -80,6 +90,8 @@ function adminLogin(socket) {
   socket.on("showAnswer", statAndEmitAnswer)
   socket.on("showScore", emitScoreBoard)
   socket.on("sendCode", sendCodeForWinner)
+  socket.on("luckyStart", luckyStart)
+  socket.on("luckyEnd", luckyEnd)
 
   sendAdminStatus()
 }
@@ -119,6 +131,15 @@ function setStatus(newStatus) {
   sendAdminStatus()
 }
 
+const sendAdminLuckyStat = throttle(function () {
+  /** @type {ServerToAdmin.Lucky} */
+  let data = {
+    messageCount: luckyStat.count,
+    playerCount: Object.keys(luckyStat.stats).length,
+  }
+  io.to('admin').emit('lucky', data)
+}, 200, { trailing: true })
+
 const sendAdminStatus = throttle(function () {
   /** @type {ServerToAdmin.Status['players']} */
   var playersTmp = Array.from(players.values()).map(p => ({
@@ -146,10 +167,10 @@ function startGame() {
   players.forEach(player => {
     player.life = 3
     player.score = 0
-    if (!player.socket.connected) kickOutPlayerIDs.add(player.openid)
+    if (!player.socket.connected && !luckyStat.stats[player.openid]) kickOutPlayerIDs.add(player.openid)
   })
 
-  // 踢掉断开了连接的玩家
+  // 踢掉断开了连接，而且没有在微信墙发过言的玩家
   kickOutPlayerIDs.forEach(id => players.delete(id))
 
   setStatus(STATUS_IDLE)
@@ -179,6 +200,71 @@ function emitNextQuestion() {
 /** 给玩家发送等待屏 */
 function emitWait() {
   setStatus(STATUS_IDLE)
+}
+
+/**
+ * 开始辛运抽奖吧
+ * @param {AdminToServer.LuckyStart} opt
+ */
+function luckyStart(opt) {
+  console.log("[[luckyStart]] -------- BEGIN")
+
+  let joinMembers = { ...luckyStat.stats } // 参与的玩家们
+  let winners = luckyStat.runLucky(opt.count, luckyBlacklist)
+  luckyStat.reset()
+  winners.forEach(([player]) => luckyBlacklist.push(player))  // 禁止欧皇再次中奖
+
+  winners.forEach(([player, msgCount]) => console.log(` - ${player} -- ${msgCount} msgs`))
+  console.log("[[luckyStart]] -------- END (CNT=" + opt.count + ")")
+
+  /** @type {ServerToWall.LuckyStart} */
+  let toWallData = {
+    players: Object.keys(joinMembers).map(id => {
+      let playerInfo = players.get(id)
+      return {
+        id,
+        priority: joinMembers[id],
+        avatar: playerInfo.avatar,
+        name: playerInfo.name
+      }
+    }),
+    winners: winners.map(([id, priority]) => {
+      let playerInfo = players.get(id)
+      return {
+        id, priority,
+        avatar: playerInfo.avatar,
+        name: playerInfo.name
+      }
+    })
+  }
+
+  /** @type {ServerToAdmin.Lucky} */
+  let toAdminData = {
+    shown: true,
+    luckyData: {
+      players: [],
+      winners: toWallData.winners
+    }
+  }
+
+  io.to("wall").emit("luckyStart", toWallData)
+  io.to("admin").emit("lucky", toAdminData)
+
+  sendAdminLuckyStat()
+}
+
+/**
+ * 结束辛运抽奖
+ */
+function luckyEnd() {
+  /** @type {ServerToAdmin.Lucky} */
+  let toAdminData = {
+    shown: false,
+    luckyData: null
+  }
+
+  io.to("wall").emit("luckyEnd")
+  io.to("admin").emit("lucky", toAdminData)
 }
 
 /** 给玩家发布答案，并统计得分、复活之类的事情 */
@@ -268,6 +354,17 @@ function emitScoreBoard() {
   var payload = getScoreInfo()
   setStatus(STATUS_SCORE)
   io.to('player').emit('score', payload)
+
+  if (!payload.users.length) return
+
+  let maxScore = payload.users[0].score
+  let winners = payload.users.filter(u => u.score === maxScore)
+  console.log(`[[score]] ------- BEGIN`)
+  winners.forEach(user => {
+    if (user.score !== maxScore) return
+    console.log(` + ${user.id} ( ${user.name} )`)
+  })
+  console.log(`[[score]] ------- END (MAX=${maxScore}, CNT=${winners.length}, GEN@${new Date()})`)
 }
 
 /**
@@ -371,6 +468,9 @@ async function playerLogin(socket) {
       time: +new Date(),
       text: msg.text,
     })
+    luckyStat.push(player.openid)
+    globalStat.push(player.openid)
+    sendAdminLuckyStat()
   })
 
   socket.emit('chat', { messages: galiao.historyMsgs })
@@ -402,13 +502,22 @@ async function playerLogin(socket) {
   }
 }
 
+/**
+ * 处理一个新的微信墙连接
+ * @param {SocketIO.Socket} socket
+ */
+function wallLogin(socket) {
+  socket.join(galiao.roomName);
+  socket.join("wall")
+}
+
 io.on('connection', function (socket) {
   var ref = socket.handshake.query.ref + ""
   console.log("Connection. Ref = " + ref)
   if (/^\/admin/.test(ref)) {
     adminLogin(socket)
   } else if (/^\/wall/.test(ref)) {
-    socket.join(galiao.roomName)
+    wallLogin(socket);
   } else {
     playerLogin(socket)
   }

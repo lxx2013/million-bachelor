@@ -1,20 +1,27 @@
 <template>
-  <div class="gmguy" :class="{dead: player.life<=0}">
+  <div class="gmguy" :class="{dead: full && player.life<=0}">
     <div class="badgets">
-      <div v-if="!player.connected">掉线</div>
+      <div v-if="full && !player.connected">掉线</div>
     </div>
 
     <img :src="player.avatar">
 
     <div class="name">{{ player.name }}</div>
-    <div class="meta">{{ player.score }} 分，{{ player.life }} 命</div>
-
+    <div class="meta">
+      <slot/>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["player"]
+  props: {
+    player: Object,
+    full: {
+      type: Boolean,
+      default: false
+    }
+  }
 };
 </script>
 
@@ -46,10 +53,10 @@ export default {
 
 .badgets > div {
   display: inline-block;
-  color: #F00;
-  background: #FEE;
-  padding: 2px 5px ;
-  border: 2px solid #F00;
+  color: #f00;
+  background: #fee;
+  padding: 2px 5px;
+  border: 2px solid #f00;
   border-radius: 4px;
 }
 
