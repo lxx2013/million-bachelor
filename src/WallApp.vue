@@ -22,11 +22,11 @@ function remove(arr, item) {
 }
 
 /** 默认新消息的持续时间, 单位 ms */
-const DEFAULT_TIME = 3000
+const DEFAULT_TIME = 5000
 /** 默认新消息的时间加成, 单位 ms/字 */
 const LENGTH_TIME = 200
 /** 被复读的消息刷新后的持续时间, 单位 ms */
-const REPEAT_TIME = 5000
+const REPEAT_TIME = 7000
 
 export default {
   name: "GaLiaoWall",

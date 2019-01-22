@@ -82,17 +82,16 @@ export default {
 
 .list-enter {
   opacity 0
-  transform translate3d(0, 150%, -200px)
+  transform translateY(150%) scale(0.7, 0.5) rotateZ(20deg)
 }
 
 .list-leave-to {
   opacity 0
-  transform translate3d(15%, -150%, -200px)
+  transform translateY(-150%) scale(0.7, 0.5) rotateZ(20deg)
 }
 
 .wechatWall {
   background #729afb
-  perspective 600px
   width 100vw
   height 100vh
 
@@ -102,11 +101,10 @@ export default {
     flex-direction column
     justify-content space-around
     height 100vh
-    padding 10vh 0
     align-items center
 
     li {
-      height 18vw
+      height 30vh
       width 80vw
       background white
       display flex
