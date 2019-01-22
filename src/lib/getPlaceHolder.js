@@ -1,3 +1,5 @@
+/// <reference path="../../types.d.ts" />
+
 const NOUN1 = "南一楼,南六楼,他,你,上一题,台上,节目,零食,气球".split(",");
 const NOUN2 = "好不好玩,帅不帅,美不美,动听不动听,的难度,的姿势,的日常,的表现,的颜色,的吉他".split(
   ","
@@ -25,6 +27,24 @@ export function getPlaceHolderMsg(){
     timeOut : 2000,
     isPlaceHolder: true,
     avatar:"http://lorempixel.com/100/100/" + randPick(pics) + `/${Math.random()*20>>1}`
+  }
+}
+
+/** @returns {ServerToWall.LuckyStart}  */
+export function getPlaceHolderLuckyData() {
+  return {
+    players: new Array(70).fill(null).map((v,i)=>({
+      id:"fake-"+i,
+      name:"FakeUser"+i,
+      priority: 100,
+      avatar: `http://profilepicturesdp.com/wp-content/uploads/2018/06/avatar-profile-pictures-${~~(Math.random()*6)+1}.png`
+    })),
+    winners: new Array(5).fill(null).map((v,i)=>({
+      id:"fake-"+i,
+      name:"FakeUser"+i,
+      priority: 100,
+      avatar: `http://profilepicturesdp.com/wp-content/uploads/2018/06/avatar-profile-pictures-${~~(Math.random()*6)+1}.png`
+    }))
   }
 }
 
