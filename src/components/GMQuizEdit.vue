@@ -66,7 +66,12 @@ export default {
       downloadFile("quiz.json", JSON.stringify(this.quizList));
     },
     importX() {
-      uploadFile(text => {
+      uploadFile((text, filename) => {
+        if (/\.json$/i.test(filename)) {
+          this.quizList = JSON.parse(text)
+          return
+        }
+
         try {
           var wb = XLSX.read(text, { type: 'binary' })
           var data = this.to_json(wb)
@@ -140,10 +145,13 @@ selectFile.addEventListener(
     var reader = new FileReader();
     reader.onload = function () {
       if (typeof selectFileCallback !== "function") return;
-      selectFileCallback(reader.result);
+      selectFileCallback(reader.result, file.name);
       selectFileCallback = null;
     };
-    reader.readAsBinaryString(files[0]);
+
+    var file = files[0];
+    if (/\.json$/i.test(file.name) || /^text/.test(file.type)) reader.readAsText(file);
+    else reader.readAsBinaryString(file);
   },
   false
 );

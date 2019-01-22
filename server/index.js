@@ -12,7 +12,7 @@ const Path = require('path')
 var app = Express();
 var http = new (require('http').Server)(app);
 var io = require('socket.io')(http);
-var debounce = require('lodash.debounce');
+var throttle = require('lodash.throttle');
 var WechatBridge = require('./wechatBridge');
 var GaLiaoManager = require('./gaLiao');
 
@@ -119,7 +119,7 @@ function setStatus(newStatus) {
   sendAdminStatus()
 }
 
-const sendAdminStatus = debounce(function () {
+const sendAdminStatus = throttle(function () {
   /** @type {ServerToAdmin.Status['players']} */
   var playersTmp = Array.from(players.values()).map(p => ({
     ...p, socket: null,
@@ -137,7 +137,7 @@ const sendAdminStatus = debounce(function () {
   }
 
   io.to('admin').emit('status', payload)
-}, 200)
+}, 200, { leading: true, trailing: true })
 
 /** 开始一局新的游戏 */
 function startGame() {

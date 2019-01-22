@@ -35,6 +35,9 @@
               <v-btn :disabled="status === 3" @click="e('showScore')">发送得分榜</v-btn>
               <v-btn @click="e('reset',true)">重置</v-btn>
             </v-flex>
+            <v-flex d-flex xs12 style="padding:0 20px">
+              当前{{connectedPlayerCount}}人在线
+            </v-flex>
           </v-layout>
         </v-card>
       </v-flex>

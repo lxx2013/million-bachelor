@@ -89,6 +89,7 @@ export default {
 .optionInput {
   box-sizing: border-box;
   width: 48%;
+  height: 52px;
   padding: 10px;
   margin: 1%;
   line-height: 24px;
@@ -102,5 +103,7 @@ export default {
 
 .optionInput.isAnswer {
   background: #afa;
+  border: 3px solid green;
+  font-weight: bold;
 }
 </style>
