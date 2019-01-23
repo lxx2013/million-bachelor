@@ -78,6 +78,10 @@ export default {
     socket.on("question", o => {
       that.question = o;
       that.state = "question";
+      try {
+        navigator.vibrate(300)
+      } catch(err){
+      }
     });
     socket.on("wait", () => {
       that.state = "wait";

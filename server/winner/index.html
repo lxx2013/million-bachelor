@@ -10,7 +10,7 @@
 </head>
 
 <body>
-  <img src="./title.png" style="max-width:100%;margin:40px 0">
+  <img src="./title.png" id="title">
 
   <div class="cardPosition">
     <img src="./star.png" alt="" id="star">
@@ -19,15 +19,25 @@
       <p>恭喜你过关斩将，成功冲顶！</p>
       <p>请使用支付宝领取口令红包：</p>
       <p><input readonly type="text" id="code"></p>
-      <p><button onclick="copy1()">点击复制</button></p>
+      <p><button id="copyBtn" onclick="copy1()">点击复制</button></p>
+      <p>领取方法请看下方 ↓</p>
     </div>
   </div>
+
+  <img src="./op.jpg" alt="" id="op">
 
   <script>
     var code = document.getElementById('code')
 
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      // 苹果不支持剪贴板
+      document.getElementById('copyBtn').style.display = 'none'
+    }
+
     code.value = decodeURIComponent(/[?&]q=([^&]+)/.exec(location.search)[1])
     document.getElementById('winnerName').textContent = decodeURIComponent(/[?&]u=([^&]+)/.exec(location.search)[1])
+
+    code.ontouchstart = function () { code.select() }
 
     function copy1() {
       code.focus()

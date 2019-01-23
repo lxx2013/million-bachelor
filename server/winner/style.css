@@ -1,7 +1,7 @@
 body {
   text-align: center;
-  background: #342c2a;
   overflow-x: hidden;
+  background: #342c2a;
 }
 
 .cardPosition {
@@ -25,7 +25,6 @@ body {
   animation: starRot 17s linear infinite;
   animation: starRot 17s linear infinite, blink 3s infinite;
   width: 180%;
-  z-index: 0;
 }
 
 @keyframes blink {
@@ -59,6 +58,12 @@ body {
 #winnerName {
   font-weight: bold;
   font-size: 150%;
+}
+
+body > img {
+  z-index: 1;
+  max-width: 100%;
+  position: relative;
 }
 
 button {
