@@ -20,6 +20,17 @@ class GaStat {
   }
 
   /**
+   * @returns {[string, number][]} 用户的ID及其发言数
+   */
+  getSortedResult() {
+    /** @type {[string, number][]}  */
+    let ans = []
+    let stats = this.stats
+    for (let id in stats) ans.push([id, stats[id]])
+    return ans.sort((a, b) => b[1] - a[1])
+  }
+
+  /**
    * 重置统计情况
    */
   reset() {
@@ -37,31 +48,35 @@ class GaStat {
     /** @type {[string, number][]} 辛运用户的ID及其发言数 */
     let ans = []
 
-    /** @type {[string, number][]}  可能中奖的 玩家ID 及其发言条数 */
+    /** @type {[string, number, number][]}  可能中奖的 玩家ID 及其权重、真实发言条数 */
     let players = []
-    let remainCount = 0
+    let weightSum = 0
 
     for (const player in this.stats) {
-      let messageCnt = +this.stats[player]
+      /** 使用对数，降低刷屏导致的大权重 */
+      let messageCnt = this.stats[player]
+      let weight = Math.log2(messageCnt * 2 + 1)
+
       if (blackList.includes(player)) continue
       if (messageCnt <= 0) continue
+      if (weight < 1) weight = 1
 
-      remainCount += messageCnt
-      players.push([player, messageCnt])
+      weightSum += weight
+      players.push([player, weight, messageCnt])
     }
 
-    while (remainCount > 0 && luckyCount--) {
-      let xi = Math.round(Math.random() * (remainCount - 1))
-      let counter = 0
+    while (weightSum > 0 && luckyCount--) {
+      let randThresh = Math.random() * weightSum
+      let weightInt = 0
 
       for (let pi = 0; pi < players.length; pi++) {
-        let [player, messageCnt] = players[pi]
-        counter += messageCnt
+        let [player, weight, messageCnt] = players[pi]
+        weightInt += weight
 
-        if (xi < counter) { // 就决定是你了
+        if (randThresh < weightInt) { // 就决定是你了
           players.splice(pi, 1)
           ans.push([player, messageCnt])
-          remainCount -= messageCnt
+          weightSum -= weight
           break
         }
       }

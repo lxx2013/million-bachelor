@@ -7,7 +7,7 @@ var MAX_HISTORY_COUNT = 100
 var globalCounter = 0
 
 /**
- * @typedef {ServerToUser.Chat['messages'][0]} GaLiaoMessage
+ * @typedef {Server.ChatMessage} GaLiaoMessage
  */
 
 class GaLiaoRoom {
@@ -26,7 +26,10 @@ class GaLiaoRoom {
     /** @type {GaLiaoMessage[]} */
     this.historyMsgs = []
 
-    this.flush = throttle(this.flush, 300)
+    /** @type {(GaLiaoMessage & {repeatedBy: string[]})[]} */
+    this.uniqueMsgs = []
+
+    this.flush = throttle(this.flush, 300, { trailing: true })
   }
 
   /**
@@ -36,7 +39,7 @@ class GaLiaoRoom {
     let { queuedMsgs, historyMsgs } = this
     /** @type {ServerToUser.Chat} */
     let payload = {
-      messages: queuedMsgs
+      messages: queuedMsgs.map(x => ({ ...x, userid: void 0 }))
     }
     this.queuedMsgs = []
     this.historyMsgs = historyMsgs.concat(queuedMsgs).splice(-MAX_HISTORY_COUNT)
@@ -48,10 +51,24 @@ class GaLiaoRoom {
    * @param {Omit<GaLiaoMessage, "key">} msg
    */
   send(msg) {
-    this.queuedMsgs.push({
+    /** @type {GaLiaoMessage} */
+    let msgWithKey = {
       key: "m" + (++globalCounter).toString(36),
       ...msg
-    })
+    }
+
+    this.queuedMsgs.push(msgWithKey)
+
+    if (!this.uniqueMsgs.some(uniqMsg => {
+      if (uniqMsg.text === msg.text) {
+        uniqMsg.repeatedBy.push(uniqMsg.userid)
+        return true
+      }
+      return false
+    })) {
+      this.uniqueMsgs.push({ ...msgWithKey, repeatedBy: [] })
+    }
+
     this.flush()
   }
 
@@ -60,7 +77,7 @@ class GaLiaoRoom {
    * @param {string} text
    */
   isRepeat(text) {
-    return this.historyMsgs.slice(-10).some(msg => msg.text === text)
+    return this.uniqueMsgs.some(msg => msg.text === text)
   }
 }
 

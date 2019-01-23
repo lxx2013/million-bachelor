@@ -143,10 +143,17 @@ declare namespace Server {
     /** 嗯 */
     socket: SocketIO.Socket
   }
+
+  type ChatMessage = ServerToUser.Chat['messages'][0] & {
+    userid: string
+  }
 }
 
 /** 服务器到管理员 */
 declare namespace ServerToAdmin {
+  /** "adminAuthResult" 管理员登陆成功 */
+  type AdminAuthResult = boolean
+
   /** "getQuiz" 返回管理员当前的题库 */
   type GetQuiz = Server.Question[]
 
@@ -184,18 +191,43 @@ declare namespace ServerToAdmin {
     messageCount?: number
     playerCount?: number
   }
+
+  /** "fetchStatRespond" 响应管理员抓取统计 */
+  type FetchStatRespond = {
+    type: AdminToServer.FetchStat,
+    text: string
+  }
 }
 
 /** 管理员到服务器 */
 declare namespace AdminToServer {
-  /** "getStatus" 获取现在的状态 */
+  /** "adminAuth" 管理员登陆 */
+  type AdminAuth = {
+    password: string
+  }
 
-  /** "getQuiz" 获取现在的问题 */
+  /** "AdminPasswd" 管理员改密码 */
+  type AdminPasswd = {
+    password: string
+  }
+
+  /** "fetchStat" 管理员抓取统计 */
+  type FetchStat = "galiao"
+
+  /** "resetStat" 重置统计 */
+  interface ResetStat {
+    luckyBlackList?: boolean
+    galiaoStat?: boolean
+  }
+
+  /** "getStatus" 获取现在的答题状态 */
+
+  /** "getQuiz" 获取现在的题库 */
 
   /** "useQuiz" 设置使用的问题，然后开始游戏 */
   type UseQuiz = Server.Question[]
 
-  /** "reset" 重置 */
+  /** "reset" 重置游戏进度 */
   /** "showWait" 进入等待屏幕 */
   /** "nextQuestion" 进入下一问题 */
   /** "showAnswer" 发问题答案 */

@@ -71,14 +71,51 @@ var luckyBlacklist = []
 /** 全场的统计，除了能找到话痨以外好像没啥用 */
 var globalStat = new GaLiaoStat()
 
+/** 原创的统计，找到最佳创造者 */
+var creatorStat = new GaLiaoStat()
+
 /** 复读的统计，找到最佳复读机 */
 var repeaterStat = new GaLiaoStat()
+
+var adminPassword = ""
 
 /**
  * 处理一个新的管理员连接
  * @param {SocketIO.Socket} socket
  */
 function adminLogin(socket) {
+  /** @param {AdminToServer.AdminAuth} auth */
+  function challenge(auth) {
+    if (!adminPassword) {
+      adminPassword = auth.password
+      socket.emit("notice", { text: "您的管理员密码已经设置！" })
+    }
+
+    if (adminPassword != auth.password) {
+      socket.emit("notice", { text: "请提供正确的管理员密码！" })
+      socket.emit("adminAuthResult", false)
+      socket.once("adminAuth", challenge)
+      return
+    }
+
+    // 验证通过！
+    socket.emit("adminAuthResult", true)
+    adminLoginReal(socket)
+  }
+
+  if (!adminPassword) {
+    socket.emit("notice", { text: "第一次登陆后台，请设置一个管理员密码！" })
+  }
+
+  socket.emit("adminAuthResult", false)
+  socket.once("adminAuth", challenge)
+}
+
+/**
+ * 处理一个新的管理员连接
+ * @param {SocketIO.Socket} socket
+ */
+function adminLoginReal(socket) {
   /** @type {Server.Admin} */  var admin = { socket }
   socket.join('admin')
   socket.join(galiao.roomName)
@@ -95,6 +132,60 @@ function adminLogin(socket) {
   socket.on("sendCode", sendCodeForWinner)
   socket.on("luckyStart", luckyStart)
   socket.on("luckyEnd", luckyEnd)
+
+  socket.on("adminPasswd", /** @param {AdminToServer.AdminPasswd} o */o => {
+    adminPassword = o.password || ""
+    socket.emit("notice", { text: "密码已经修改了" })
+  })
+
+  socket.on("resetStat", /** @param {AdminToServer.ResetStat} o */o => {
+    let dones = []
+
+    if (o.galiaoStat) {
+      luckyStat.reset()
+      globalStat.reset()
+      creatorStat.reset()
+      repeaterStat.reset()
+
+      dones.push("各种关于聊天的统计")
+    }
+
+    if (o.luckyBlackList) {
+      luckyBlacklist.splice(0)
+
+      dones.push("抽奖黑名单")
+    }
+
+    socket.emit("notice", { text: "已经重置 " + dones.join("、") })
+  })
+
+  socket.on("fetchStat", /** @param {AdminToServer.FetchStat} type */type => {
+    let text = ""
+    if (type == "galiao") {
+      /** @param {[string, number]} pair */
+      function pair2obj(pair) { return { ...players.get(pair[0]), messageCount: pair[1] } }
+
+      let bestTalker = globalStat.getSortedResult().slice(0, 10).map(pair2obj)
+      let bestCreator = creatorStat.getSortedResult().slice(0, 10).map(pair2obj)
+      let bestRepeater = repeaterStat.getSortedResult().slice(0, 10).map(pair2obj)
+
+      text = [
+        `全场共计产生了 ${globalStat.count} 条尬聊`,
+        "",
+        "==最积极发言者==",
+        ...bestTalker.map((it, idx) => ` ${idx + 1}. ${it.name} -- ${it.messageCount} 条尬聊 -- ${it.openid}`),
+        "",
+        "==最佳创造者==",
+        ...bestCreator.map((it, idx) => ` ${idx + 1}. ${it.name} -- 原创 ${it.messageCount} 条尬聊 -- ${it.openid}`),
+        "",
+        "==最佳复读机==",
+        ...bestRepeater.map((it, idx) => ` ${idx + 1}. ${it.name} -- 复读 ${it.messageCount} 次 -- ${it.openid}`),
+        "",
+      ].join("\n")
+    }
+
+    socket.emit("fetchStatRespond", { type, text })
+  })
 
   sendAdminStatus()
 }
@@ -476,10 +567,14 @@ async function playerLogin(socket) {
       nickname: player.name,
       time: +new Date(),
       text: msg.text,
+      userid: player.openid,
     })
-    if (!isRepeat) luckyStat.push(player.openid)
+
+    luckyStat.push(player.openid)
     globalStat.push(player.openid)
     if (isRepeat) repeaterStat.push(player.openid)
+    else creatorStat.push(player.openid)
+
     sendAdminLuckyStat()
   })
 

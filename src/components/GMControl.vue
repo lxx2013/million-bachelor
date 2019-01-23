@@ -8,7 +8,7 @@
           <v-layout row wrap>
             <v-flex d-flex xs12>
               <v-btn
-                :disabled="status === 1 && index < total"
+                :disabled="status === 1 || index >= total"
                 @click="e('nextQuestion')"
                 style="height:64px"
                 :class="{'light-green lighten-2': currentQuestionStated && index < total}"
@@ -31,8 +31,16 @@
               </v-btn>
             </v-flex>
             <v-flex d-flex xs12>
-              <v-btn :disabled="status === 0" @click="e('showWait')">进入等待画面</v-btn>
-              <v-btn :disabled="status === 3" @click="e('showScore')">发送得分榜</v-btn>
+              <v-btn
+                :disabled="status === 0"
+                @click="e('showWait')"
+                :class="{'light-green lighten-2': status === 3}"
+              >进入等待画面</v-btn>
+              <v-btn
+                :disabled="status === 3"
+                @click="e('showScore')"
+                :class="{'light-green lighten-2': currentQuestionStated && index >= total}"
+              >发送得分榜</v-btn>
               <v-btn @click="e('reset',true)">重置</v-btn>
             </v-flex>
             <v-flex xs12>
@@ -55,11 +63,27 @@
       </v-flex>
 
       <v-flex xs12 v-else>
-        <v-btn :disabled="status === 1" @click="e('nextQuestion')">发送下一道题</v-btn>
-        <v-btn :disabled="status === 2" @click="e('showAnswer')">发送答案</v-btn>
-        <v-btn :disabled="status === 0" @click="e('showWait')">进入等待画面</v-btn>
-        <v-btn :disabled="status === 3" @click="e('showScore')">发送得分榜</v-btn>
-        <v-btn @click="e('reset')">重置</v-btn>
+        <v-btn
+          :disabled="status === 1 || index >= total"
+          @click="e('nextQuestion')"
+          :class="{'light-green lighten-2': currentQuestionStated && index < total}"
+        >发送下一道题</v-btn>
+        <v-btn
+          :disabled="status === 2"
+          @click="e('showAnswer')"
+          :class="{'light-green lighten-2': !currentQuestionStated}"
+        >发送答案</v-btn>
+        <v-btn
+          :disabled="status === 0"
+          @click="e('showWait')"
+          :class="{'light-green lighten-2': status === 3}"
+        >进入等待画面</v-btn>
+        <v-btn
+          :disabled="status === 3"
+          @click="e('showScore')"
+          :class="{'light-green lighten-2': currentQuestionStated && index >= total}"
+        >发送得分榜</v-btn>
+        <v-btn @click="e('reset', true)">重置</v-btn>
       </v-flex>
 
       <v-flex xs12 md7>
