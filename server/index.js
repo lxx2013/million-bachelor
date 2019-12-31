@@ -17,7 +17,7 @@ var WechatBridge = require('./wechatBridge');
 var GaLiaoManager = require('./gaLiao');
 var GaLiaoStat = require('./GaStat');
 
-WechatBridge.init("wxbfeab713561ea29c", "2facca9696b23da9d79dda2aca8ef663", !IS_PROD)
+WechatBridge.init("wx4a41c84538f71d83", "86556b0863605e31b7d3708a7417422e", !IS_PROD)
 
 const WSHostPrefix = "https://k-on.live"
 const AUTO_ENTER_WAIT = true
@@ -570,7 +570,7 @@ async function playerLogin(socket) {
       userid: player.openid,
     })
 
-    luckyStat.push(player.openid)
+    if (!isRepeat) luckyStat.push(player.openid)
     globalStat.push(player.openid)
     if (isRepeat) repeaterStat.push(player.openid)
     else creatorStat.push(player.openid)
@@ -628,6 +628,8 @@ io.on('connection', function (socket) {
   }
 })
 
+var compression = require('compression');
+app.use(compression());
 app.use('/winner', Express.static(Path.resolve(__dirname, 'winner')))
 app.use(Express.static(Path.resolve(__dirname, '../dist/')))
 http.listen(8801, function () {

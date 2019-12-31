@@ -61,8 +61,8 @@ exports.getWechatAccount = async function (socket) {
 
 
   // 微信检查
-  let { mbid, wechatCode } = socket.handshake.query
-
+  let { mbid, wechatCode } = socket.handshake.query 
+  console.log(`socket.handshake`,socket.handshake);
   /** @type {WechatInfo} */
   let tmpUser = mbidStorage.getItem(mbid)
   if (tmpUser) return tmpUser
@@ -92,7 +92,7 @@ exports.getWechatAccount = async function (socket) {
  */
 exports.getAuthRedirectURL = async function (socket) {
   const state = socket.handshake.query.rhost + "?&wechatCode="
-  return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxbfeab713561ea29c&redirect_uri=http%3A%2F%2Ft.k-on.live%2FwechatLogin&response_type=code&scope=snsapi_userinfo&state=${encodeURIComponent(state)}#wechat_redirect`
+  return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=http%3A%2F%2Ft.k-on.live%2FwechatLogin&response_type=code&scope=snsapi_userinfo&state=${encodeURIComponent(state)}#wechat_redirect`
 }
 
 /**

@@ -58,6 +58,7 @@ class GaLiaoRoom {
     }
 
     this.queuedMsgs.push(msgWithKey)
+    console.log(msg)
 
     if (!this.uniqueMsgs.some(uniqMsg => {
       if (uniqMsg.text === msg.text) {
