@@ -470,22 +470,33 @@ function emitScoreBoard() {
  * @param {AdminToServer.SendCode} opt
  */
 async function sendCodeForWinner(opt) {
-  const template = '0K7VV5kZYqhEX7Q1zwvSyPqe5U2J0jARDDe83kW41_U'
+  const template = 'B8g0gkpHl1zJooFF_h40qIHt1Yv0NG55Ac5jkAOPWcY'
   const { openIds, passcode } = opt
   const baseURL = WSHostPrefix + "/winner/?q=" + encodeURIComponent(passcode)
 
   io.to('admin').emit('notice', { text: "正在发送口令..." })
+  const error_msgs = []
+  const success_msgs = []
   await Promise.all(openIds.map(async openid => {
     let player = players.get(openid)
-    if (!player) return
+    if (!player){
+      error_msgs.push(`openid:${openid} 不在 players 中`)
+      return
+    } 
 
     let url = baseURL + '&u=' + encodeURIComponent(player.name)
-    await WechatBridge.sendTemplateMessage(openid, template, url, {
+    let send_res = await WechatBridge.sendTemplateMessage(openid, template, url, {
       text: opt.text,
       extra: "获取口令"
     })
+    let shot_id = openid.slice(0,4)+'**'+openid.slice(-2)
+    if(send_res.data.errcode){
+      error_msgs.push(`name:${player.name} id:${shot_id} errmsg:${send_res.data.errmsg}`)
+    }else{
+      success_msgs.push(`name:${player.name} id:${shot_id} 发送成功`)
+    }
   }))
-  io.to('admin').emit('notice', { text: "口令发送完成！" })
+  io.to('admin').emit('notice', { text: error_msgs.concat(success_msgs).join('\n') })
 }
 
 /**

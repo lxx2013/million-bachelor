@@ -103,6 +103,7 @@ exports.getAuthRedirectURL = async function (socket) {
  */
 exports.sendTemplateMessage = async function (touser, template_id, url, data) {
   let access_token = await getAccessToken()
+  console.log(`getAccessToken `,access_token)
 
   let newData = {}
   for (let key in data) {
@@ -111,7 +112,7 @@ exports.sendTemplateMessage = async function (touser, template_id, url, data) {
     else newData[key] = value
   }
 
-  await axios.post(`https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${access_token}`, {
+  return await axios.post(`https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${access_token}`, {
     touser,
     template_id,
     url,

@@ -66,7 +66,7 @@
 
     <v-dialog v-if="!!notice" :value="true" width="500" persistent>
       <v-card>
-        <v-card-text>{{ notice.text }}</v-card-text>
+        <v-card-text v-for="text in notice.text.split('\n')" :key="text">{{ text }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" @click="notice=null">知道了</v-btn>
