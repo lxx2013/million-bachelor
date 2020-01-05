@@ -581,11 +581,15 @@ async function playerLogin(socket) {
       userid: player.openid,
     })
 
-    if (!isRepeat) luckyStat.push(player.openid)
     globalStat.push(player.openid)
-    if (isRepeat) repeaterStat.push(player.openid)
-    else creatorStat.push(player.openid)
-
+    if (!isRepeat) {
+      luckyStat.push(player.openid)
+      creatorStat.push(player.openid)
+    }
+    else{
+      repeaterStat.push(player.openid)
+    }
+    
     sendAdminLuckyStat()
   })
 
