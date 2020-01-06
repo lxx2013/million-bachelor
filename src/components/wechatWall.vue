@@ -27,7 +27,7 @@ export default {
   components: {},
   data() {
     return {
-      fontSize: { 0: '6vw', 24: '4vw', 42: '4vw', 51: '3.4vw', 10000: '3vw' },
+      fontSize: { 0: '6vw', 11: '5.9vw', 42: '4vw', 51: '3.4vw', 10000: '3vw' },
       jumps: {}, //控制复读机"+1"脚标的跳动 类型: { key: boolean },
       repeats:{},/** 纪录复读机"+1"脚标的次数 类型: { key: number }.
                   *  从msg 中剥离出来以减少跳动现象, 即在 watch变化时,不应比较 val[index].xx == oldVal[index].xx,
@@ -36,7 +36,14 @@ export default {
   },
   methods: {
     size(text) {
-      let length = text && text.length || 0
+      text = text || ''
+      // 123中国😂, 总长度为7, 其中英文字符长度3, 中文长度2, emoji 长度为2
+      let english_length = (text.match(/[\x00-\xff]/g) || []).length // 数字和符号字符数(英文字符)
+      let chinese_length = (text.match(/[\u4e00-\u9fa5]/g)|| []).length // 中文字符数
+      let emoji_length = text.length - english_length - chinese_length // emoji 表情字符数(为实际值的2倍)
+      //英文字符比较短,宽度只取一半, emoji 和中文字符差不多宽, 但它匹配出来长度为2被
+      let length = chinese_length + english_length/2 + emoji_length/2
+      // console.log(`${text} 的宽度为 ${text.length} , 参与计算的宽度为${length}`);
       for (let i in this.fontSize) {
         if (length < i) {
           return this.fontSize[i]

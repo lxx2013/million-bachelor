@@ -629,6 +629,7 @@ async function playerLogin(socket) {
 function wallLogin(socket) {
   socket.join(galiao.roomName);
   socket.join("wall")
+  socket.emit('chat', { messages: galiao.historyMsgs.slice(-3) })
 }
 
 io.on('connection', function (socket) {
