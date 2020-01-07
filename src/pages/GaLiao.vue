@@ -4,7 +4,7 @@
       <div class="emptyNotice">等待主持人发题时，可以在这里尬聊一波...</div>
       <transition-group tag="div">
         <div class="msgItem" v-for="msg in msgs" :key="msg.key">
-          <img :src="msg.avatar" class="avatar">
+          <img :src="msg.avatar" class="avatar" />
           <!-- <div class="nickname">{{ msg.nickname }}</div> -->
           <div class="text" @click="text=msg.text" @dblclick="send(msg.text)">
             {{ msg.text }}
@@ -13,7 +13,7 @@
         </div>
       </transition-group>
     </div>
-    <div class="sendBox">
+    <div ref="sendBox" class="sendBox fixed-bottom">
       <input
         ref="inputBox"
         type="text"
@@ -21,8 +21,8 @@
         @keypress.enter="send"
         :placeholder="placeholder"
         @dblclick="send('666')"
-      >
-      <button class="sendBtn" @click="send">发言</button>
+      />
+      <button class="sendBtn" @touchstart="send" @mousedown="send">发言</button>
     </div>
   </div>
 </template>
@@ -50,6 +50,13 @@ export default {
   },
   mounted() {
     socket.on("chat", this.handleChat);
+    this.$refs.inputBox.onblur = () => {
+      window.scrollTo(0, 0);
+      this.$refs.sendBox.classList.add("fixed-bottom");
+    };
+    this.$refs.inputBox.onfocus = () => {
+      this.$refs.sendBox.classList.remove("fixed-bottom");
+    };
   },
   beforeDestroy() {
     socket.off("chat", this.handleChat);
@@ -85,7 +92,7 @@ export default {
       socket.emit("chat", {
         text
       });
-
+      this.$refs.inputBox.focus();
       this.text = "";
     }
   }
@@ -125,6 +132,12 @@ export default {
     flex-basis: 48px;
     flex-shrink: 0;
 
+    &.fixed-bottom {
+      margin-bottom: 0;
+      margin-bottom: constant(safe-area-inset-bottom);
+      margin-bottom: env(safe-area-inset-bottom);
+    }
+
     input {
       flex-grow: 1;
       border: 0;
@@ -132,6 +145,7 @@ export default {
       padding: 5px;
       min-height: 1em;
       user-select: auto;
+      outline: none;
     }
 
     .sendBtn {
