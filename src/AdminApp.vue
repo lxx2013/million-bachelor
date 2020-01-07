@@ -9,7 +9,7 @@
         <!-- <v-tab href="#tab-0">二维码</v-tab> -->
         <v-tab href="#tab-1">冲顶题库</v-tab>
         <v-tab href="#tab-2">答题流程</v-tab>
-        <v-tab href="#tab-3">发红包</v-tab>
+        <v-tab href="#tab-3">发红包&问卷</v-tab>
         <v-tab href="#tab-4">抽奖</v-tab>
         <v-tab href="#tab-5">系统</v-tab>
       </v-tabs>

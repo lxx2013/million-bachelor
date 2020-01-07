@@ -11,6 +11,15 @@
         <v-btn :disabled="loading" class="primary" @click="submit">发送给 {{ lines.length }} 人</v-btn>
       </v-flex>
     </v-layout>
+
+    <v-layout style="margin-top:100px;">
+      <v-flex xs12 md6>
+        <v-text-field v-model.lazy="questionnaireUrl" label="问卷链接"></v-text-field>
+      </v-flex>
+      <v-flex xs12 md6>
+        <v-btn :disabled="loading" class="warning" @click="sendQuestionnaire">发送问卷</v-btn>
+      </v-flex>
+    </v-layout>
   </v-container>
 </template>
 
@@ -23,7 +32,8 @@ export default {
       linesRaw: "",
       text: "在第 1 轮答题中脱颖而出",
       passcode: "",
-      loading: false
+      loading: false,
+      questionnaireUrl:'https://wj.qq.com/s2/5247499/0f16'
     };
   },
   computed: {
@@ -44,6 +54,9 @@ export default {
       setTimeout(() => {
         this.loading = false;
       }, 500);
+    },
+    sendQuestionnaire(){
+      socket.emit("sendQuestionnaire", this.questionnaireUrl);
     }
   }
 };

@@ -18,6 +18,7 @@
 |             | `answer`      | `showWait` |
 |             |               | `showAnswer` |
 |             |               | `showScore`  |
+|             |               | `sendQuestionnaire`|
 | `server =>` | `question`    |   |
 |             | `wait`        |   |
 |             | `answer`      |   |

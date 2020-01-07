@@ -132,6 +132,7 @@ function adminLoginReal(socket) {
   socket.on("sendCode", sendCodeForWinner)
   socket.on("luckyStart", luckyStart)
   socket.on("luckyEnd", luckyEnd)
+  socket.on("sendQuestionnaire",sendQuestionnaire)
 
   socket.on("adminPasswd", /** @param {AdminToServer.AdminPasswd} o */o => {
     adminPassword = o.password || ""
@@ -497,6 +498,12 @@ async function sendCodeForWinner(opt) {
     }
   }))
   io.to('admin').emit('notice', { text: error_msgs.concat(success_msgs).join('\n') })
+}
+
+async function sendQuestionnaire(url){
+  io.to('admin').emit('notice', { text: "正在发送调查问卷..." })
+  WechatBridge.sendToAll([...players.keys()], url)
+  io.to('admin').emit('notice', { text: "发送完成" })
 }
 
 /**

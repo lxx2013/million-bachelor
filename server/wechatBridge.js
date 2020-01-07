@@ -120,3 +120,22 @@ exports.sendTemplateMessage = async function (touser, template_id, url, data) {
     data: newData,
   })
 }
+
+/**
+ * 向全员推送一条消息, (例如推送调查问卷的链接)
+ * @param {string[]} openids
+ * @param {string} url
+ */
+exports.sendToAll = async function (openids, url) {
+  let access_token = await getAccessToken()
+  for (let openid of openids) {
+    console.log(openids);
+    axios.post(`https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${access_token}`, {
+      touser: openid,
+      template_id:"3tuMIMMhmhAON3wfvLrtz1IcyGXUdWeBcxICtd06p48",
+      url,
+      topcolor: "#FF0000",
+      data: {},
+    }).then(res=>console.log(res)).catch(err=>console.error(err));
+  }
+}
