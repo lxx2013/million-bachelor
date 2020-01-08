@@ -1,5 +1,5 @@
 <template>
-  <div class="button" :style="buttonStyle" @click="click" tabindex="0" ontouchstart and onmouseover>
+  <div class="button" :style="buttonStyle" @click="click" tabindex="0" ontouchstart>
     <slot></slot>
     <div v-if="info.length>0" class="info">{{info}}</div>
     <div
@@ -92,7 +92,8 @@ export default {
         }
         else {
           this.$emit('emitClick', this.index)
-          this.showTooltip(event)
+          this.question.selected = true
+          this.showTooltip(event, "已提交,继续点有彩蛋")
         }
       }
       if (this.answer) {
@@ -106,7 +107,9 @@ export default {
       if (this.clickTimes == 1) {
         this.tooltip = msg || this.tooltipContent[Math.random() * 24 >> 1]
       }
-      else {
+      else if(this.clickTimes % 10 == 0){
+        this.tooltip = `哇,你居然点击了${this.clickTimes}次!`
+      }else{
         //第三次及后续点击, 显示社会主义核心价值观
         this.tooltip = this.tooltipContent[Math.random() * 24 >> 1]
       }
@@ -125,6 +128,7 @@ export default {
   background #fefefe
   box-shadow 0 0px 10px 1px rgba(0, 0, 0, 0.2)
   position relative
+  transform translateZ(0px)
 
   &:active {
     transform translateY(5px)
